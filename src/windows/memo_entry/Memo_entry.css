@@ -1,0 +1,113 @@
+.name_credit {
+    display: flex;
+    border: solid 1px black;
+    justify-content: space-around;
+    margin-bottom: 5px;
+}
+
+
+.section-header {
+    color: #5f21fc;
+    font-size: 20px;
+    font-weight: bold;
+}
+
+.date {
+    display: inline;
+}
+
+h3, h4 {
+    display: inline-block;
+    margin-right: 5px;
+}
+
+
+
+.payment_information {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+
+}
+
+.fieldset {
+    border: solid 2px #C9C6FF;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 7%;
+    margin: 10px;
+    padding: 20px;
+}
+
+.bank {
+    border: solid 2px #C9C6FF;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: space-around;
+    padding: 0px 35px 5px 35px;
+}
+
+.dark-purple { 
+    color:#3701c2;
+}
+
+.bank_info {
+    border: solid 1px #827cfc;
+    padding: 5px;
+    border-radius: 10px;
+}
+
+.selected_payment{
+    margin: 20px;
+
+    display: flex;
+    justify-content: center;
+    gap: 30px;
+    flex-wrap: wrap;
+}
+
+
+.hide {
+    display: none
+}
+
+.show {
+    display: block;
+}
+
+.credit {
+    padding: 20px;
+    border: solid 2px #C9C6FF;
+    border-radius: 10px;
+}
+
+.additional {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    justify-content: center;
+}
+
+.deduction_percent {
+    border-radius: 100% 0% 0% 100%;
+}
+
+.deduction_amount {
+    border-radius: 0% 100% 100% 0%;
+}
+
+.deduct {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.selected {
+    background-color: #5f21fc;
+    color: white;
+}

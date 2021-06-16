@@ -1,0 +1,22 @@
+.entry_content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;    
+}
+
+.form-box {
+    padding: 50px;
+    border-radius: 5px;
+    background-color: white;
+    margin-top: 10px;
+    text-align: justify;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.heading {
+    display: block;
+    text-align: center;
+}
