@@ -5,14 +5,15 @@ import Home from "../home/Home"
 import {useParams, useHistory} from 'react-router-dom'
 import Popper from '@material-ui/core/Popper'
 import {Button, ButtonGroup} from '@material-ui/core'
+import {base} from '../../proxy_url'
 
 const loadOptions = (mode)=> {
     
     var link;
     if (mode === "suppliers") {
-        link = "/supplier_names_and_ids"
+        link = base + "/supplier_names_and_ids"
     }
-    else {link = "/party_names_and_ids"}
+    else {link = base + "/party_names_and_ids"}
 
     return (fetch(link).then(response => {
         return response.json();
@@ -64,7 +65,7 @@ export default function Multiple_Selector() {
                 headers: {'Content-Type': 'application/json'},
                 body: JSON.stringify({suppliers: suppliers, parties: JSON.stringify(selected), report: report, from: from, to: to})
             }
-            fetch('/create_report', requestOptions).then(response => {
+            fetch(base + '/create_report', requestOptions).then(response => {
                 return response.blob()
             }).then(blob => {
                 return URL.createObjectURL(blob)})

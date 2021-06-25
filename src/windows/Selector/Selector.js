@@ -7,15 +7,16 @@ import TextInput from '../Custom/TextInput'
 import Autocomplete from '@material-ui/lab/Autocomplete';
 import {useParams, useHistory} from 'react-router-dom'
 import {useForm} from 'react-hook-form'
+import {base} from '../../proxy_url'
 
 
 const loadOptions = (mode)=> {
     
     var link;
     if (mode === "Supplier") {
-        link = "/supplier_names_and_ids"
+        link = base + "/supplier_names_and_ids"
     }
-    else {link = "/party_names_and_ids"}
+    else {link = base + "/party_names_and_ids"}
 
     return (fetch(link).then(response => {
         return response.json();

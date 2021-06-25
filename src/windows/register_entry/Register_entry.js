@@ -11,6 +11,7 @@ import {keybind_form} from '../../hooks/keybind'
 import {validate_int, validate_required} from '../Custom/validate'
 import MuiAlert from '@material-ui/lab/Alert'
 import Snackbar from '@material-ui/core/Snackbar'
+import {base} from '../../proxy_url'
 
 function Alert(props) {
   return <MuiAlert elevation={6} variant="filled" {...props} />;
@@ -49,7 +50,7 @@ export default function Register_entry() {
 
     var {supplier} = useParams();
     supplier = (JSON.parse(supplier))
-    const {register, handleSubmit} = useForm();
+    const {register, handleSubmit, reset} = useForm();
     const [options, setOptions] = useState([]);
     const [selected, setSelected] = useState([]);
     const [error, setError] = useState(validate);
@@ -61,7 +62,7 @@ export default function Register_entry() {
       // Setting key binds
       setKeyBinds();
       document.getElementById("bill_num").focus()
-      fetch(`/party_names_and_ids`).then(response => {
+      fetch(`${base}/party_names_and_ids`).then(response => {
       return response.json();
     }).then(data => {
       console.log(data)
@@ -80,7 +81,7 @@ export default function Register_entry() {
         if (err_status) {setError((old) => {return {...old, ...update}})}
 
         if(!err_status) {
-          fetch(`/add/register_entry/${data['bill_num']}/${data['amount']}/${JSON.stringify(supplier)}/${JSON.stringify(selected)}/${data['date']}`).then(response => {
+          fetch(`${base}/add/register_entry/${data['bill_num']}/${data['amount']}/${JSON.stringify(supplier)}/${JSON.stringify(selected)}/${data['date']}`).then(response => {
             return response.json();
           }).then(data => {
             const {status, ...err} = data;
@@ -88,6 +89,8 @@ export default function Register_entry() {
               setError((old) => {return {...old, ...err}})
             }
             else {
+              reset()
+              document.getElementById('bill_num').focus()
               setOpen(true)
               setTimeout(()=>{setOpen(false)}, 3000)
             }
@@ -114,12 +117,12 @@ export default function Register_entry() {
 
                 <div>
                 <TextInput label="Bill Number" type="number" id="bill_num" errorText={error.bill_num.message}
-                           props={register("bill_num") } id="bill_num" errorState={error.bill_num.error}
+                           props={{inputProps:{...register("bill_num") }}} id="bill_num" errorState={error.bill_num.error}
                 />
                 </div>
                 <div>
                 <TextInput label="Bill Date" type="date" defaultValue={date} errorState={false} errorText="Invalid Date"
-                            props = {register("date")} />
+                            props = {{inputProps:{...register("date")}}} />
                 </div>
                 <div>
                 <Autocomplete 
@@ -141,7 +144,7 @@ export default function Register_entry() {
                 </div>
                 <div>
                 <TextInput label="Amount" id="amount" type="number" errorState={error.amount.error} errorText={error.amount.message}
-                           props={register("amount")} />
+                           props={{inputProps:{...register("amount")}}} />
                 </div>
                 <input type="submit" class="button"/>
                 </div>

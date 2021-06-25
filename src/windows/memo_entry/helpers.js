@@ -1,3 +1,5 @@
+import {base} from '../../proxy_url'
+
 export const update_bill_color = (bills) => {
 
     var colour_bills = [];
@@ -23,13 +25,13 @@ export const update_bill_color = (bills) => {
 }
 
 export const getBillNumbers = (supplier_id, party_id) => {
-    return fetch(`/pending_bills/${supplier_id}/${party_id}`).then(response => response.json())
+    return fetch(`${base}/pending_bills/${supplier_id}/${party_id}`).then(response => response.json())
 }
 
 export const getCredit = (supplier_id, party_id) => {
-    return fetch(`/credit/${supplier_id}/${party_id}`).then(response => response.json())
+    return fetch(`${base}/credit/${supplier_id}/${party_id}`).then(response => response.json())
 }
-export const getBank = () => fetch(`/bank_names_and_ids`).then(response => response.json())
+export const getBank = () => fetch(`${base}/bank_names_and_ids`).then(response => response.json())
 
 
 export const getDate = () => {

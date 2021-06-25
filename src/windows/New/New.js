@@ -8,6 +8,7 @@ import {validate} from './validate'
 import {validate_required} from '../Custom/validate'
 import MuiAlert from '@material-ui/lab/Alert'
 import Snackbar from '@material-ui/core/Snackbar'
+import {base} from '../../proxy_url'
 
 const setKeyBinds = () => {
     // Setting enter keybinds
@@ -38,7 +39,7 @@ export default function New() {
             setError(old => {return {...old, ...update}});
         }
         else {
-            fetch(`/add/individual/${entity}/${data["name"]}/${data["phone"]}/${data["address"]}`)
+            fetch(`${base}/add/individual/${entity}/${data["name"]}/${data["phone"]}/${data["address"]}`)
             setOpen(true);
             setTimeout(()=> {setOpen(false)}, 3000)
         }

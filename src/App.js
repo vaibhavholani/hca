@@ -1,6 +1,6 @@
 import './App.css';
 import {useEffect} from 'react';
-import {BrowserRouter as Router, 
+import {HashRouter as Router, 
   Switch, Route, Link} from "react-router-dom"
 import Home from './windows/home/Home';
 import New from './windows/New/New'

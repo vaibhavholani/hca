@@ -6,32 +6,32 @@ import TextField from '@material-ui/core/TextField'
 import { ReactComponent as Logo } from './logo_white.svg';
 
 const setKeybinds = () => {
-    var elements = document.getElementsByClassName('entry-content')
+    var elements = document.getElementsByClassName('entry-links')
     keybind("travel", "ArrowDown", "forward", elements)
     keybind("travel", "ArrowUp", "backward", elements)
-    keybind_multiple("Escape", elements, [document.getElementById('entry')])
-    var elements = document.getElementsByClassName('report-content')
+    keybind_multiple("Escape", elements, document.getElementsByClassName('entry-tag'))
+    var elements = document.getElementsByClassName('report-links')
     keybind("travel", "ArrowDown", "forward", elements)
     keybind("travel", "ArrowUp", "backward", elements)
-    keybind_multiple("Escape", elements, [document.getElementById('report')])
-    var elements = document.getElementsByClassName('new-content')
+    keybind_multiple("Escape", elements, document.getElementsByClassName('report-tag'))
+    var elements = document.getElementsByClassName('new-links')
     keybind("travel", "ArrowDown", "forward", elements)
     keybind("travel", "ArrowUp", "backward", elements)
-    keybind_multiple("Escape", elements, [document.getElementById('new')])
-    var elements = document.getElementsByClassName('topbar')
+    keybind_multiple("Escape", elements, document.getElementsByClassName('new-tag'))
+    var elements = document.getElementsByClassName('nav-links')
     keybind("travel", "ArrowRight", "forward", elements)
     keybind("travel", "ArrowLeft", "backward", elements)
     
-    var to = document.getElementById("entry");
-    var from = document.getElementById("register")
+    var to = document.getElementsByClassName("entry-tag")[0];
+    var from = document.getElementsByClassName("register")[0];
     keybind_single("ArrowDown", to, from )
     keybind_single("ArrowUp", from, to )
-    var to = document.getElementById("report");
-    var from = document.getElementById("khata")
+    var to = document.getElementsByClassName("report-tag")[0];
+    var from = document.getElementsByClassName("khata")[0];
     keybind_single("ArrowDown", to, from )
     keybind_single("ArrowUp", from, to )
-    var to = document.getElementById("new");
-    var from = document.getElementById("supplier");
+    var to = document.getElementsByClassName("new-tag")[0];
+    var from = document.getElementsByClassName("supplier")[0];
     keybind_single("ArrowDown", to, from )
     keybind_single("ArrowUp", from, to )
 
@@ -39,16 +39,16 @@ const setKeybinds = () => {
 
 export default function Home() {
 
-    // useEffect(()=> {
-    //     setKeybinds();
-    //     (document.getElementById('entry')).focus()
-    // }, [])
+    useEffect(()=> {
+        setKeybinds();
+        (document.getElementsByClassName('entry-tag')[0]).focus()
+    }, [])
    
     return (
         <>
             <div class="sticky">
             <nav className='navbar shadow'>
-                <a href='/' className="navbar-logo">
+                <a href='/hca/#' className="navbar-logo">
                      <Logo />
                 </a>
                 <ul className='nav-menu'>

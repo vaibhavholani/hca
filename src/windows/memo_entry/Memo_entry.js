@@ -16,6 +16,8 @@ import {validate} from './validation'
 import {withStyles} from '@material-ui/core/styles'
 import MuiAlert from '@material-ui/lab/Alert'
 import Snackbar from '@material-ui/core/Snackbar'
+import {base} from '../../proxy_url'
+
 
 import {update_bill_color, getBillNumbers, getBank, getCredit, getDate} from './helpers'
 
@@ -207,7 +209,7 @@ export default function Memo_entry() {
             value["payment"] = payment
             value["memo_type"] = memo_type.name
             
-            fetch(`/add/memo_entry/${JSON.stringify(value)}`).then(response => {
+            fetch(`${base}/add/memo_entry/${JSON.stringify(value)}`).then(response => {
                 return response.json();
             }).then(data => {
                 const {status, ...err} = data;
