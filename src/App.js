@@ -1,7 +1,8 @@
 import './App.css';
-import {useEffect} from 'react';
-import {HashRouter as Router, 
-  Switch, Route, Link} from "react-router-dom"
+import React, {useState} from 'react';
+
+import {BrowserRouter as Router, 
+  Switch, Route, Link} from "react-router-dom";
 import Home from './windows/home/Home';
 import New from './windows/New/New'
 import Report_Date from './windows/Date/Report_Date'
@@ -9,13 +10,22 @@ import Selector from './windows/Selector/Selector'
 import Register_entry from './windows/register_entry/Register_entry'
 import Multiple_Selector from './windows/Multiple_Selector/Multiple_Selector'
 import Memo_entry from './windows/memo_entry/Memo_entry'
+import View from './windows/View/View'
+import Login from './windows/Login/Login'
+
+// creating a context
+export const LoginContext = React.createContext()
+
+// change it back to hash router
 function App() {
+  const [token, setToken] = useState(sessionStorage.getItem("token"));
 
-  const nextString = "Supplier"
-
+  // Checking if the right proxy is being set
   return (
     <>
+    <LoginContext.Provider value={{token, setToken}}>
     <Router>
+        {token && token != "" && token != undefined? 
       <Switch>
         <Route path="/memo_entry/:party/:supplier" component={Memo_entry} />
         <Route path="/new/:entity" component={New}/>
@@ -23,9 +33,14 @@ function App() {
         <Route path="/date_select/:report" component={Report_Date} />
         <Route path="/selector/:mode/:type/:supplier"  component={Selector}/>
         <Route path="/register_entry/:supplier" component={Register_entry}/>
+        <Route path="/view" component={View}/>
         <Route path="/" exact component={Home}/>
       </Switch>
+        :
+        <Login />
+        }
     </Router>
+    </LoginContext.Provider>
     </>
   );
 }

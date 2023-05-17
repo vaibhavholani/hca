@@ -1,0 +1,16 @@
+.view-content {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-evenly;   
+    gap: 5px; 
+}
+
+.heading-box {
+    padding: 50px;
+    border-radius: 5px;
+    background-color: white;
+    margin-top: 10px;
+    justify-content: center;
+    display: flex;
+    align-items: center;
+}

@@ -68,8 +68,15 @@ export default function Multiple_Selector() {
             fetch(base + '/create_report', requestOptions).then(response => {
                 return response.blob()
             }).then(blob => {
-                return URL.createObjectURL(blob)})
-            .then(url => window.open(url))
+                const link = document.createElement('a')
+                link.href = URL.createObjectURL(blob)
+                link.download = `${report}.pdf`
+                document.body.append(link);
+                link.click();
+                link.remove();
+                // in case the Blob uses a lot of memory
+                setTimeout(() => URL.revokeObjectURL(link.href), 7000);
+            })
             .catch(err => console.error(err));
             }
             }

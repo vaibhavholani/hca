@@ -1,1 +1,2 @@
-export const base = "https://holani-cloth-agency.herokuapp.com"
+export const base = process.env.REACT_APP_MODE === "development" ? "" : "https://holani-cloth-agency.herokuapp.com"
+export const router_base = process.env.REACT_APP_MODE === "development" ? "" : "/hca/#"

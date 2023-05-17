@@ -4,6 +4,8 @@ import {MenuItems} from './MenuItems'
 import keybind, {keybind_single, keybind_multiple} from '../../hooks/keybind'
 import TextField from '@material-ui/core/TextField'
 import { ReactComponent as Logo } from './logo_white.svg';
+import {router_base} from '../../proxy_url'
+
 
 const setKeybinds = () => {
     var elements = document.getElementsByClassName('entry-links')
@@ -48,7 +50,7 @@ export default function Home() {
         <>
             <div class="sticky">
             <nav className='navbar shadow'>
-                <a href='/hca/#' className="navbar-logo">
+                <a href={`${router_base}/`} className="navbar-logo">
                      <Logo />
                 </a>
                 <ul className='nav-menu'>
@@ -72,6 +74,11 @@ export default function Home() {
                             </li>
                         )
                     })}
+                    <li className="nav-item" >
+                        <a className="nav-links" href={`${router_base}/view`}>
+                            View
+                        </a>
+                    </li>
                 </ul>
 
             </nav>

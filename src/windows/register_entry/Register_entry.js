@@ -107,7 +107,6 @@ export default function Register_entry() {
     return (
             <>
             <Home/>
-           
             <div class="entry_content">
               <div class="form-box">
               <h3 style={{display: "inline"}}>Supplier Name: {supplier["name"]}</h3>
@@ -117,7 +116,7 @@ export default function Register_entry() {
 
                 <div>
                 <TextInput label="Bill Number" type="number" id="bill_num" errorText={error.bill_num.message}
-                           props={{inputProps:{...register("bill_num") }}} id="bill_num" errorState={error.bill_num.error}
+                           props={{inputProps:{...register("bill_num") }}} errorState={error.bill_num.error}
                 />
                 </div>
                 <div>

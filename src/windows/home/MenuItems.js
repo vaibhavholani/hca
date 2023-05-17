@@ -1,14 +1,14 @@
-
+import {router_base} from '../../proxy_url'
 
 const EntryItems = [
     {
         title: 'Register Entry',
-        url: '/hca/#/selector/Supplier/register_entry/none',
+        url: `${router_base}/selector/Supplier/register_entry/none`,
         cName: 'entry-links links register'
     }, 
     {
         title: 'Memo Entry',
-        url: '/hca/#/selector/Supplier/memo_entry/none',
+        url: `${router_base}/selector/Supplier/memo_entry/none`,
         cName: 'entry-links links'
     }
 ]
@@ -16,33 +16,33 @@ const EntryItems = [
 const ReportItems = [
     {
         title: 'Khata Report',
-        url: '/hca/#/date_select/khata_report',
+        url: `${router_base}/date_select/khata_report`,
         cName: 'report-links links khata'
     }, 
     {
         title: 'Supplier Register',
-        url: '/hca/#/date_select/supplier_register',
+        url: `${router_base}/date_select/supplier_register`,
         cName: 'report-links links'
     },
     {
         title: 'Payment List',
-        url: '/hca/#/date_select/payment_list',
+        url: `${router_base}/date_select/payment_list`,
         cName: 'report-links links'
     }, 
     {
         title: 'Payment List Summary',
-        url: '/hca/#/date_select/payment_list_summary',
+        url: `${router_base}/date_select/payment_list_summary`,
         cName: 'report-links links'
     },
     
     {
         title: 'Grand Total List',
-        url: '/hca/#/date_select/grand_total_list',
+        url: `${router_base}/date_select/grand_total_list`,
         cName: 'report-links links'
     }, 
     {
         title: 'Legacy Payment List',
-        url: '/hca/#/date_select/legacy_payment_list',
+        url: `${router_base}/date_select/legacy_payment_list`,
         cName: 'report-links links'
     }
     
@@ -52,22 +52,22 @@ const ReportItems = [
 const NewItems = [
     {
         title: 'Supplier',
-        url: '/hca/#/new/supplier',
+        url: `${router_base}/new/supplier`,
         cName: 'new-links links supplier'
     }, 
     {
         title: 'Party',
-        url: '/hca/#/new/party',
+        url: `${router_base}/new/party`,
         cName: 'new-links links'
     }, 
     {
         title: 'Bank',
-        url: '/hca/#/new/bank',
+        url: `${router_base}/new/bank`,
         cName: 'new-links links'
     }, 
     {
         title: 'Transporter',
-        url: '/hca/#/new/transporter',
+        url: `${router_base}/new/transporter`,
         cName: 'new-links links'
     }
 
@@ -76,19 +76,19 @@ const NewItems = [
 export const MenuItems = [
     {
         title: 'Entry', 
-        url: '/hca/#/',
+        url: `${router_base}`,
         links: EntryItems,
         cName: 'entry-tag nav-links '
     },
     {
         title: 'Reports', 
-        url: '/hca/#/',
+        url: `${router_base}`,
         links: ReportItems,
         cName: 'nav-links report-tag'
     },
     {
         title: 'New', 
-        url: '/hca/#/',
+        url: `${router_base}`,
         links: NewItems,
         cName: 'nav-links new-tag'
     }

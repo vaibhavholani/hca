@@ -1,0 +1,29 @@
+.loginPage-Logo {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100vw;
+}
+
+.logo {
+    height: 35vh;
+    width: 35vw;
+}
+
+.LoginForm {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    width: min-content;
+}
+
+.flex {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+   
+    height: 100vh;
+    background: linear-gradient(90deg, rgb(110, 94, 254) 0%, rgba(73, 63, 252, 1) 100%);
+    animation: left-to-right 5s ease-in infinite alternate;
+}
