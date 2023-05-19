@@ -46,11 +46,12 @@ const PurpleSwitch = withStyles({
     track: {},
   })(Switch);
 
-const setAmount = (bills) => {
+const setAmount = (bills, grAmount) => {
     var total = 0;
     bills.forEach(value => {
         total += value.pending;
     })
+    total= total - grAmount;
     return total
 }
 
@@ -71,6 +72,8 @@ export default function Memo_entry() {
     const [payment, setPayment] = useState([])
     const [creditClick, setCreditClick] = useState(false);
     const [deductClick, setDeductClick] = useState(false);
+    const [grClick, setGrClick] = useState(false);
+    const [grAmount, setGrAmount] = useState(0);
     const [useCheque, setUseCheque] = useState(false);
     const [error, setError2] = useState(validate);
     const [total, setTotal] = useState(0);
@@ -81,9 +84,9 @@ export default function Memo_entry() {
    
 
     useEffect(()=> {
-        setTotal(setAmount(selectedBills));
+        setTotal(setAmount(selectedBills, grAmount));
         
-    }, [selectedBills])
+    }, [selectedBills, grAmount])
 
 
     useEffect(()=>{
@@ -185,11 +188,16 @@ export default function Memo_entry() {
             value.deduction = Math.ceil(value.amount*(d_percent))   
         }
 
-        const max = setAmount(selectedBills);
-        console.log(value.amount)
-        if (memo_type.name === "Full" && value.amount != max) {
+        const max = setAmount(selectedBills, grAmount);
+        const grMax = setAmount(selectedBills, 0);
+        // check if gr amount is valid
+        if (memo_type.name === "Full" && grAmount > grMax) {
+            add= false;
+            setError('gr_amount', {type: "manual", message: `GR Amount must be less than or equal to ₹${grMax}`})}
+
+        if (memo_type.name === "Full" && value.amount != max && grAmount === 0) {
             add = false;
-            setError('amount', {type: "manual", message: `Amount must be ₹${max}`})
+            setError('amount', {type: "manual", message: `Amount must be less than or equal to₹${max}`})
         }
         else if (memo_type.name === "Partial" && value.amount > max) {
             add = false;
@@ -226,6 +234,9 @@ export default function Memo_entry() {
                 console.log("Error Reading data " + err);
             });
             setTotal(0)
+            setGrAmount(0)
+            setGrClick(false)
+            
             setTimeout(()=> {setStateTracker(old => old + 1); setOpen(false)}, 1500)
             
         }
@@ -418,71 +429,106 @@ export default function Memo_entry() {
                 </div>
                 <div class="additional">
                     <fieldset class="credit">
-                    <div>
-                    <PurpleSwitch checked={creditClick} 
-                    onChange = {(event, value) => {setCreditClick(value) } }
-                    />
-                    <h3 class="dark-purple">Use Credit amount?</h3>
-                    </div>
+                        <div>
+                            <PurpleSwitch checked={creditClick} 
+                            onChange = {(event, value) => {setCreditClick(value) } }
+                            />
+                            <h3 class="dark-purple">Use Credit amount?</h3>
+                        </div>
 
-                    {creditClick &&                     
-                    <div >
-                    <Chip label={`Available Credit: ${credit}`} variant="outlined" />
-                    <TextInput label="Credit Amount" type="number" 
-                    errorState = {Boolean(errors.credit_amount)}
-                    errorText = {errors.credit_amount?.message}
-                    InputProps = {{inputProps: {...register("credit_amount", {required: "Fill in credit amount to be used", 
-                    shouldUnregister: true, 
-                    min: {
-                        value: payment.length > 0 ? 0 : total,
-                        message: `If no Bank Information is added, credit amount must equal total: ₹${total}`
-                    }, 
-                    max: {
-                        value: credit > total ? total : credit,
-                        message: `Not enough available credit or credit used is more than total amount ₹${total}`
-                    }, 
-                })}}}
-                    />
-                    </div>}
+                        {creditClick &&                     
+                        <div >
+                            <Chip label={`Available Credit: ${credit}`} variant="outlined" />
+                            <TextInput label="Credit Amount" type="number" 
+                            errorState = {Boolean(errors.credit_amount)}
+                            errorText = {errors.credit_amount?.message}
+                            InputProps = {{inputProps: {...register("credit_amount", {required: "Fill in credit amount to be used", 
+                            shouldUnregister: true, 
+                            min: {
+                                value: payment.length > 0 ? 0 : total,
+                                message: `If no Bank Information is added, credit amount must equal total: ₹${total}`
+                            }, 
+                            max: {
+                                value: credit > total ? total : credit,
+                                message: `Not enough available credit or credit used is more than total amount ₹${total}`
+                            }, 
+                            })}}}
+                            />
+                        </div>}
+                    </fieldset>
+                    
+                    <fieldset class="credit">
+                        <div>
+                            <PurpleSwitch checked={grClick} 
+                            onChange = {(event, value) => {setGrClick(value) } }
+                            />
+                            <h3 class="dark-purple">Add Goods Return? (GR)</h3>
+                        </div>
+
+                        {grClick &&                     
+                        <div >
+                            <TextInput label="GR Amount" type="number" 
+                            errorState = {Boolean(errors.gr_amount)}
+                            errorText = {errors.gr_amount?.message}
+                            onChange={(e) => {
+                                setGrAmount(e.target.value)
+                            }}
+                            InputProps = {{inputProps: {...register("memo_gr_amount", {required: "Please add gr amount on the bill", 
+                            shouldUnregister: true, 
+                            min: {
+                                value: 0,
+                                message: `GR amount cannot be negative`
+                            }, 
+                            max: {
+                                value: total,
+                                message: `GR amount cannot be greater than total amount: ${total}`
+                            }, 
+                            })}}}
+                            />
+                        </div>}
+
                     </fieldset>
 
+
+
                     <fieldset class="credit">
-                    <div>
-                    <PurpleSwitch checked={deductClick} 
-                    onChange = {(event, value) => {setDeductClick(value) } }
-                    />
-                    <h3 class="dark-purple">Apply Deduction?</h3>
-                    </div>
+                        <div>
+                        <PurpleSwitch checked={deductClick} 
+                        onChange = {(event, value) => {setDeductClick(value) } }
+                        />
+                        <h3 class="dark-purple">Apply Deduction?</h3>
+                        </div>
 
-                    {deductClick &&                     
-                    <div class="deduct">
-                    <TextInput label="Deduction" type="number" 
-                    errorState = {Boolean(errors.deduction)}
-                    errorText = {errors.deduction?.message}
-                    InputProps = {{inputProps: {...register("deduction", {required: "Fill in deduction to be applied", 
-                    shouldUnregister: true, 
-                    min: {
-                        value: 0,
-                        message: "Please enter a positive number"
-                    },
-                    max:{
-                        value: deduction ? 100 : total,
-                        message: "Invalid Max Value"
-                    }, 
-                    valueAsNumber: true
-                })}}}
-                    />
-                    <button className={deduction ? "selected button deduction_percent" : "button deduction_percent"} 
-                    onClick={(event) => {event.preventDefault()
-                                        setDeduction(true);
-                    }}>%</button>
+                        {deductClick &&                     
+                        <div class="deduct">
+                        <TextInput label="Deduction" type="number" 
+                        errorState = {Boolean(errors.deduction)}
+                        errorText = {errors.deduction?.message}
+                        InputProps = {{inputProps: {...register("deduction", {required: "Fill in deduction to be applied", 
+                        shouldUnregister: true, 
+                        min: {
+                            value: 0,
+                            message: "Please enter a positive number"
+                        },
+                        max:{
+                            value: deduction ? 100 : total,
+                            message: "Invalid Max Value"
+                        }, 
+                        valueAsNumber: true
+                    })}}}
 
-                    <button className={deduction ? "button deduction_amount" : "selected button deduction_amount"}  
-                    onClick={(event) => {event.preventDefault()
-                                        setDeduction(false)
-                    
-                    }}>₹</button>
-                    </div>}
+                        />
+                        <button className={deduction ? "selected button deduction_percent" : "button deduction_percent"} 
+                        onClick={(event) => {event.preventDefault()
+                                            setDeduction(true);
+                        }}>%</button>
+
+                        <button className={deduction ? "button deduction_amount" : "selected button deduction_amount"}  
+                        onClick={(event) => {event.preventDefault()
+                                            setDeduction(false)
+                        
+                        }}>₹</button>
+                        </div>}
                     </fieldset>
                     
 
