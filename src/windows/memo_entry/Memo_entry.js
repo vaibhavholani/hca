@@ -1,4 +1,4 @@
-import React, {useState, useEffect, useRef} from 'react'
+import React, {useState, useEffect, useRef, memo} from 'react'
 import './Memo_entry.css'
 import Home from '../home/Home'
 import {useForm} from 'react-hook-form'
@@ -31,7 +31,8 @@ const setKeyBinds = () => {
 function Alert(props) {
     return <MuiAlert elevation={6} variant="filled" {...props} />;
   }
-  
+
+// Custom Style button for credit add gr, credit or deduction
 const PurpleSwitch = withStyles({
     switchBase: {
       color: "#3701c2",
@@ -46,6 +47,7 @@ const PurpleSwitch = withStyles({
     track: {},
   })(Switch);
 
+// helper function to recalculate total amount
 const setAmount = (bills, grAmount) => {
     var total = 0;
     bills.forEach(value => {
@@ -75,12 +77,15 @@ export default function Memo_entry() {
     const [grClick, setGrClick] = useState(false);
     const [grAmount, setGrAmount] = useState(0);
     const [useCheque, setUseCheque] = useState(false);
+    
+    // validate is used to store error messages in file validation.js
     const [error, setError2] = useState(validate);
     const [total, setTotal] = useState(0);
     const [deduction, setDeduction] = useState(false);
     const [deductionValue, setDeductionValue] = useState(0);
-    const [open, setOpen] = useState(false);
     const date = getDate();
+    
+    const [successNotificationOpen, setSuccessNotificationOpen] = useState(false);
    
 
     useEffect(()=> {
@@ -88,38 +93,50 @@ export default function Memo_entry() {
         
     }, [selectedBills, grAmount])
 
-
+    // this useEffect is used to update the bills and credit amount whenever 
+    // a new entry is submitted to create an "alive" effect
     useEffect(()=>{
+
+        // resetting focus and keybinds
         document.getElementById("memo_type").focus()
         setKeyBinds();
+
+        //getting informatin about partial amounts dynamically and updating it
         var promise = getBillNumbers(supplier["id"], party["id"])
         promise.then(data => {setBills(update_bill_color(data))})
         promise = getCredit(supplier["id"], party["id"])
         promise.then(data => {
-            if (data.length > 0) {
-                const partial = data[0].partial_amount
-                setCredit(partial)
-            }
-            else {
-                setCredit(0)
-            }
+            console.log(data)
+            // if (data.length > 0) {
+            //     const partial = data[0].partial_amount
+            //     setCredit(partial)
+            // }
+            // else {
+            //     setCredit(0)
+            // }
         })
-
+        // gets information about banks and updates them
+        // TODO: is this required?
         promise= getBank()
         promise.then(data => setBank(data))
         
     }, [stateTracker])
 
     useEffect(()=> {
+        // everytime memo type changed, the keybinds need be to set accodingly 
+        // because different parts of the component are rendered
         setKeyBinds();
     }, [memo_type])
 
     const addPayment = () => {
 
         setError2({...error, BankName: validate.BankName, ChequeNumber: validate.ChequeNumber})
+        
+        // variable to determine if payment can be added
         var add = true;
+
+        // validation checks for bank name and cheque number
         var cheque_num = document.getElementById('cheque_number').value
-        console.log(cheque_num)
         if (selectedBank == null) {
             add = false;
             setError2(old => {
@@ -142,6 +159,7 @@ export default function Memo_entry() {
             }
         }) }
         
+        // if all validation checks are passed, add the payment
         if (add) {
             const obj = {
                 bank: selectedBank.name, 
@@ -153,11 +171,19 @@ export default function Memo_entry() {
         }
         
     }
+
+    // form validation and submission
     const onSubmit = (value) => {
 
         var add = true;
+
+        // library function: clear any old errors
         clearErrors();
+
+        // reset all errors
         setError2(validate);
+
+        // validation check to ensure there is atleast one payment method
         if (payment.length <= 0 && memo_type.name !== "Goods Return") {
             add = false;
             setError2(old => {
@@ -173,46 +199,65 @@ export default function Memo_entry() {
             })
         }
 
-        if (selectedBills.length <= 0) {
+        // checking that atlest one bill is selected
+        if (selectedBills.length <= 0 && memo_type.name !== "Part") {
             add = false;
             setError2(old => {return {...old, BillNumbers: {error: true, message: old.BillNumbers.message}}})
-        }
+        } 
 
+        // checking that memo type is selected
         if (memo_type.name === "") {
             add = false;
             setError2(old => {return {...old, memo_type:{error: true, message: old.memo_type.message}}})
         }
 
+        // if the the %method is picked in deduction, the deduction value is calculated
         if (deduction && deductClick) {
             const d_percent = (value.deduction)/100
             value.deduction = Math.ceil(value.amount*(d_percent))   
         }
 
+        // This is the maxing amount that can be entered
         const max = setAmount(selectedBills, grAmount);
+
+        // Just a dummy amount for the max gr that can be done
         const grMax = setAmount(selectedBills, 0);
+        const pendingMax = setAmount(bills, 0);
+
+        
         // check if gr amount is valid
         if (memo_type.name === "Full" && grAmount > grMax) {
             add= false;
-            setError('gr_amount', {type: "manual", message: `GR Amount must be less than or equal to ₹${grMax}`})}
-
-        if (memo_type.name === "Full" && value.amount != max && grAmount === 0) {
+            setError('memo_gr_amount', {type: "manual", message: `GR Amount must be less than or equal to ₹${grMax}`})}
+        
+        // if the value is not exact equal to max, there is an error
+        if (memo_type.name === "Full" && value.amount != max) {
             add = false;
             setError('amount', {type: "manual", message: `Amount must be less than or equal to₹${max}`})
         }
+        // one can't put a bigger part than the selected bill amount total
         else if (memo_type.name === "Partial" && value.amount > max) {
             add = false;
             setError('amount', {type: "manual", message: `Amount must be less than or equal to ₹${max}`})
         }
+        // you can't return more than there is to return
         else if (memo_type.name === "Goods Return" && value.amount > max) {
             add = false;
             setError('amount', {type: "manual", message: `GR Amount must be less than or equal to ₹${max}`})
         }
+
+        // check if memo_type is part then amount is less than grMax
+        if (memo_type.name === "Part" && value.amount > pendingMax) {
+            setError('amount', {type: "manual", message: `Amount must be less than total pending between supplier and party amount of ₹${grMax}`})
+        }
         
-
-
+        // add the memo entry if there are no errors
         if (add) {
+            // setting the correct party and supplier id
             value["party_id"] = party["id"];
             value["supplier_id"] = supplier["id"];
+
+            // setting custom entites which I could not add in the form hook
             value["selected_bills"] = selectedBills;
             value["payment"] = payment
             value["memo_type"] = memo_type.name
@@ -221,29 +266,36 @@ export default function Memo_entry() {
                 return response.json();
             }).then(data => {
                 const {status, ...err} = data;
+                // setting an error if one is found in the backend
                 if (status === "error") {
                     Object.keys(err).forEach(value => {
                         setError(value, {type: "manual", message: err[value].message})
                     })
                 }
                 else {
-                setOpen(true)
+                // else showing the success badge
+                setSuccessNotificationOpen(true)
                 }
+
             }).catch(err => {
                 // Do something for an error here
                 console.log("Error Reading data " + err);
             });
+
+            // resetting values
             setTotal(0)
             setGrAmount(0)
             setGrClick(false)
             
-            setTimeout(()=> {setStateTracker(old => old + 1); setOpen(false)}, 1500)
+            // updating state to give the alive effect and closing the success window
+            setTimeout(()=> {setStateTracker(old => old + 1); setSuccessNotificationOpen(false)}, 1500)
             
         }
         
     }
 
-    const handleDelete = (event) => {
+    // remove a payment method
+    const handlePaymentDeleteClick = (event) => {
         event.preventDefault();
         payment.splice(event.target.id, 1)
         setPayment([...payment])
@@ -253,28 +305,41 @@ export default function Memo_entry() {
         <>
         <Home />
         <div class="entry_content">
-        
+            
+            {/* top box with supplier and party name*/}
             <div class= "form-box">
                 <fieldset class="fieldset">
                     <legend><p class="section-header">Selection Information</p></legend>
                     <h3>Party Name: {party["name"]} </h3>
                     <h3>Supplier Name: {supplier["name"]} </h3>
                 </fieldset>
-                
+
+            {/* huge form component 
+                Here handleSubmit is the library function (which can probably 
+                    call a custom function)
+                OnSubmit is the custom function
+            */} 
             <form onSubmit={handleSubmit(onSubmit)}>
                 <fieldset class="fieldset">
+                    {/* Bill information section contains information on Memo Type (full, part, etc) and the bill numbers to be selected */}
                     <legend><p class="section-header">Bill Information</p></legend>
                     <div class="bill_child">
+                        {/* The autcomplete here is from material ui class and not a custom one */}
                         <Autocomplete 
+                            // component is not registered with memo_type
                             id="memo_type"
-                            options={[{name :"Full"}, {name :"Partial"}, {name : "Goods Return"}, {name : "Credit"}]} 
-                            style={{width: 300}}
+                            // options={[{name :"Full"}, {name :"Partial"}, {name : "Goods Return"}, {name : "Credit"}]} 
+                            options={[{name :"Full"}, {name : "Part"}]} 
                             getOptionLabel = {(options) => options.name}
+                            style={{width: 300}}
                             autoHighlight 
                             onChange = {(event, value) => {
+                                // since the mode is change the errors don'e make sense anymore
                                 clearErrors()
-                               
+                                // changing the error displayed on memo type
                                 setError2(old => {return {...old, memo_type: validate.memo_type}})
+
+                                // error checks to ensure incorrect value is not place in memo_entry
                                 if (value == null || value.name === "" || typeof value === 'undefined') {
                                     setMemoType({name: ""})
                                     setError2(old => {return {...old, memo_type:{error: true, message: old.memo_type.message}}})
@@ -283,21 +348,33 @@ export default function Memo_entry() {
                                     setMemoType(value);
                                 }
                             }}
+                            // adding key binds
                             onKeyPress={(e) => {
                                 if (e.key === 'Enter') {
                                 e.preventDefault()
-                                document.getElementById("bill_numbers").focus()
+                                // manually going to the next element
+                                if (memo_type.name === "Part") {
+                                    document.getElementById("memo_number").focus()
+                                } else {
+                                    document.getElementById("bill_numbers").focus()
+                                }
                                 }}}
+                            
+                            // Fancy memo type input rendering
                             renderInput= {(params) => <TextInput label="Memo Type" props={params} errorState={error.memo_type.error} errorText={error.memo_type.message} 
                              /> } />
                     </div>
 
                     <div class="memo_bill">
                         <Autocomplete 
+                            // this autocomplere is used to select bill numbers
+                            // NOTE: this component is not registered with useForm 
                             id="bill_numbers"
                             multiple={(memo_type.name === "Full" || memo_type.name === "Goods Return") ? true: false}
+                            // to ensure this field is updated when memo types  is changed or a memo is submitted
                             key={`${JSON.stringify(memo_type)} ${stateTracker}`}
-                            options={bills} 
+                            options={bills}
+                            disabled={memo_type.name==="Part" ? true : false}
                             getOptionLabel = {(option) => option.bill_number.toString()}
                             renderOption={(option, props) => {
                                 const {bill_number, color, pending} = option
@@ -305,6 +382,7 @@ export default function Memo_entry() {
                                 <span {...props} style={{color: color }}> #{bill_number} | Pending Amount: ₹{pending}</span>
                                 )
                             }}
+
                             onChange = {(event, value) => {
                                 if (value == null) {
                                     setSelectedBills([]);
@@ -314,6 +392,7 @@ export default function Memo_entry() {
                                     setSelectedBills(value)
                                 }
                                 else {
+                                    // TODO: why am I setting the error over here?
                                     setError2(old => {return {...old, BillNumbers: validate.BillNumbers}})
                                     setSelectedBills([value])
                                 }
@@ -323,20 +402,30 @@ export default function Memo_entry() {
                             onKeyPress={(e) => {
                                 if (e.key === 'Enter') {
                                 e.preventDefault()
+                                // custom key bind
                                 document.getElementById("memo_number").focus()
-                                // write your functionality here
+                                
                                 }}}
                             renderInput= {(params) => <TextInput label="Bill Numbers" errorState = {error.BillNumbers.error}
                             props={params} 
                             errorText={error.BillNumbers.message}/>}   />
                     </div> 
                     </fieldset> 
-            
+                
+                {/* 
+                                    START OF SECTION 2:    
+                -> This section contians information about Memo Number, Date and Amount. 
+                -> Each Component in this section is registered with use Form
+                */}
                 <fieldset class="fieldset">
                     <legend><p class="section-header">Memo Information</p></legend>
                     <div>
-                    <TextInput id="memo_number" label="Memo Number" type="number" errorState={Boolean(errors.memo_number)} 
+                    <TextInput id="memo_number" label="Memo Number" type="number" 
+                            // Here error is set by "errors" and not "error". 
+                            // "errors" is the form default error validation function
+                            errorState={Boolean(errors.memo_number)} 
                             errorText={errors.memo_number?.message}
+                            // Thus all the validation messages are added here itself
                             InputProps={{inputProps: {...register("memo_number", {required: "Please enter a Memo Number",
                                                                                 min: {
                                                                                     value: 0,
@@ -347,16 +436,22 @@ export default function Memo_entry() {
                 />
                     </div>
                     <div>
-                        <TextInput label="Memo Date" type="date" defaultValue={date} errorState={Boolean(errors.memo_date)} 
+                        <TextInput label="Memo Date" type="date" defaultValue={date} 
+                            // use of "errors" and not error
+                            errorState={Boolean(errors.memo_date)} 
                             errorText={errors.memo_date?.message}
                             InputProps = {{inputProps: {...register("memo_date", {required: "Please enter a Memo date"})}}} />
                     </div>
                     <div>
-                    <TextInput label="Amount" type="number" errorState={Boolean(errors.amount)} 
+                    <TextInput label="Amount" type="number" 
+                            // use of "errors" and not error
+                            errorState={Boolean(errors.amount)} 
                             errorText={errors.amount?.message}
                             value = {total}
+                            // reset when the memo is submitted
                             key = {`gg${stateTracker}`}
                             defaultValue = {total}
+                            // TODO: ASK RG: Set it such that the memo amount cannot be filled in, can avoid multiple erros
                             onChange = {(event, value) => {setTotal(value)}}
                             InputProps = {{inputProps: {...register("amount", {required: "Please enter an amount",
                                                                                 min: {
@@ -368,13 +463,18 @@ export default function Memo_entry() {
                     </div>
                 </fieldset>
 
+             {/* 
+                            START OF SECTION 3: Payment Information
             
+            */}
             {(memo_type.name !== "Goods Return") && <fieldset class="fieldset">
                 <legend><p class="section-header">Payment Information</p></legend>            
                 <div class="payment_information">
                     <fieldset class="bank" >
                         <legend><p class="section-header dark-purple">Add Bank Information</p></legend>
                         <Autocomplete 
+                        // since this is a auto complete, it is not registerd with the form
+                        // thus the errors are going to tracked by setError
                         id="bank_name"
                         options={bank} 
                         getOptionLabel = {(options) => options.name}
@@ -384,6 +484,7 @@ export default function Memo_entry() {
                             e.preventDefault()
                             document.getElementById("cheque_number").focus()
                             }}}
+                        
                         onChange={(event, value) => {
                             setSelectedBank(value);
                             if (value != null) {
@@ -420,37 +521,47 @@ export default function Memo_entry() {
                                         
                                         <p><AccountBalanceIcon /><b>Bank Name:</b> {element.bank}</p> 
                                         {<p><CreditCardIcon /> <b>Cheque Number:</b> {element.cheque} </p>} 
-                                        <button id={index} onClick={handleDelete} class="button">Delete</button>
+                                        <button id={index} onClick={handlePaymentDeleteClick} class="button">Delete</button>
                                     </div>
                         )
                                 })}
                 
                 </div>
                 </div>
+                 {/* 
+                            START OF SECTION 3: Additional Memo Information
+                            TODO: Removing Radio Button to increase keybind efficiency
+            
+                */}
+
+                {memo_type.name !== "Part" ? 
                 <div class="additional">
                     <fieldset class="credit">
+                        {/* This code is for using previous and pending part */}
                         <div>
                             <PurpleSwitch checked={creditClick} 
                             onChange = {(event, value) => {setCreditClick(value) } }
                             />
-                            <h3 class="dark-purple">Use Credit amount?</h3>
+                            <h3 class="dark-purple">Use Part amount?</h3>
                         </div>
 
+                        {/* Only displayed if check button is clicked. */}
                         {creditClick &&                     
                         <div >
-                            <Chip label={`Available Credit: ${credit}`} variant="outlined" />
-                            <TextInput label="Credit Amount" type="number" 
+                            <Chip label={`Available Part: ${credit}`} variant="outlined" />
+                            <TextInput label="Part Amount" type="number" 
                             errorState = {Boolean(errors.credit_amount)}
                             errorText = {errors.credit_amount?.message}
+                            // Here seems like text input is registered with the form
                             InputProps = {{inputProps: {...register("credit_amount", {required: "Fill in credit amount to be used", 
                             shouldUnregister: true, 
                             min: {
                                 value: payment.length > 0 ? 0 : total,
-                                message: `If no Bank Information is added, credit amount must equal total: ₹${total}`
+                                message: `If no Bank Information is added, part amount must equal total: ₹${total}`
                             }, 
                             max: {
                                 value: credit > total ? total : credit,
-                                message: `Not enough available credit or credit used is more than total amount ₹${total}`
+                                message: `Not enough available part or part used is more than total amount ₹${total}`
                             }, 
                             })}}}
                             />
@@ -458,6 +569,7 @@ export default function Memo_entry() {
                     </fieldset>
                     
                     <fieldset class="credit">
+                        {/* This Section is for Goods Return */}
                         <div>
                             <PurpleSwitch checked={grClick} 
                             onChange = {(event, value) => {setGrClick(value) } }
@@ -468,8 +580,8 @@ export default function Memo_entry() {
                         {grClick &&                     
                         <div >
                             <TextInput label="GR Amount" type="number" 
-                            errorState = {Boolean(errors.gr_amount)}
-                            errorText = {errors.gr_amount?.message}
+                            errorState = {Boolean(errors.memo_gr_amount)}
+                            errorText = {errors.memo_gr_amount?.message}
                             onChange={(e) => {
                                 setGrAmount(e.target.value)
                             }}
@@ -532,7 +644,7 @@ export default function Memo_entry() {
                     </fieldset>
                     
 
-                </div>
+                </div> : null }
                         
                 
             </fieldset>}
@@ -541,7 +653,7 @@ export default function Memo_entry() {
             </form>
             </div>
         </div>
-        <Snackbar open={open} autoHideDuration={4000} >
+        <Snackbar open={successNotificationOpen} autoHideDuration={4000} >
                 <Alert  severity="success">
                     Memo Added!
                 </Alert>

@@ -47,5 +47,10 @@ export const validate = {
     d_amount: {
         error: false, 
         message: ""
+    },
+    
+    gr_amount: {
+        error: false, 
+        message: ""
     }
 }
