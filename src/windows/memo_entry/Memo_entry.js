@@ -20,6 +20,8 @@ import {base} from '../../proxy_url'
 
 
 import {update_bill_color, getBillNumbers, getBank, getCredit, getDate} from './helpers'
+import { Checkbox, List, ListItem, ListItemIcon, ListItemText } from '@material-ui/core';
+import { CheckBoxOutlineBlank, CheckBox } from '@material-ui/icons';
 
 const setKeyBinds = () => {
     var elements = document.getElementsByTagName('input');
@@ -48,12 +50,12 @@ const PurpleSwitch = withStyles({
   })(Switch);
 
 // helper function to recalculate total amount
-const setAmount = (bills, grAmount) => {
+const setAmount = (bills, grAmount, partAmount=0, deduction=0) => {
     var total = 0;
     bills.forEach(value => {
         total += value.pending;
     })
-    total= total - grAmount;
+    total= total - grAmount - partAmount - deduction;
     return total
 }
 
@@ -65,15 +67,19 @@ export default function Memo_entry() {
     party= JSON.parse(party);
     supplier = JSON.parse(supplier);
     const [bills, setBills] = useState([])
-    const [credit, setCredit] = useState(0)
+    const [credit, setCredit] = useState([])
     const [selectedBills, setSelectedBills] = useState([])
-    const [bank, setBank] = useState([])
+    const [bank, setBank] = useState([]);
     const [selectedBank, setSelectedBank] = useState(null);
+    const [partAmount, setPartAmount] = useState(0)
+    const [selectedPart, setSelectedPart] = useState({})
+    
     const [memo_type, setMemoType] = useState({name: ""});
     const [chequeNum, setChequeNum] = useState(0);
     const [payment, setPayment] = useState([])
     const [creditClick, setCreditClick] = useState(false);
     const [deductClick, setDeductClick] = useState(false);
+    const [deductMode, setDeductMode] = useState("amount");
     const [grClick, setGrClick] = useState(false);
     const [grAmount, setGrAmount] = useState(0);
     const [useCheque, setUseCheque] = useState(false);
@@ -81,17 +87,28 @@ export default function Memo_entry() {
     // validate is used to store error messages in file validation.js
     const [error, setError2] = useState(validate);
     const [total, setTotal] = useState(0);
-    const [deduction, setDeduction] = useState(false);
-    const [deductionValue, setDeductionValue] = useState(0);
+    // use in part payment validation
+    const [maxPart, setMaxPart] = useState(0);
+    const [maxGR, setMaxGR] = useState(0);
+
+    const [deduction, setDeduction] = useState(0);
+    // const [deductionList, setDeductionList] = useState(0);
+    
     const date = getDate();
     
     const [successNotificationOpen, setSuccessNotificationOpen] = useState(false);
    
+    // temp: removee this later
+    useEffect(()=> {
+        console.log("deduction")
+    }, [deduction])
+
 
     useEffect(()=> {
-        setTotal(setAmount(selectedBills, grAmount));
-        
-    }, [selectedBills, grAmount])
+        setTotal(setAmount(selectedBills, grAmount, partAmount, deduction));
+        setMaxPart(setAmount(selectedBills, grAmount,0, deduction));
+        setMaxGR(setAmount(selectedBills, 0, partAmount, deduction));
+    }, [selectedBills, grAmount, partAmount, deduction])
 
     // this useEffect is used to update the bills and credit amount whenever 
     // a new entry is submitted to create an "alive" effect
@@ -106,14 +123,13 @@ export default function Memo_entry() {
         promise.then(data => {setBills(update_bill_color(data))})
         promise = getCredit(supplier["id"], party["id"])
         promise.then(data => {
-            console.log(data)
-            // if (data.length > 0) {
-            //     const partial = data[0].partial_amount
-            //     setCredit(partial)
-            // }
-            // else {
-            //     setCredit(0)
-            // }
+            
+            if (data.length > 0) {
+                setCredit(data)
+            }
+            else {
+                setCredit([])
+            }
         })
         // gets information about banks and updates them
         // TODO: is this required?
@@ -137,7 +153,7 @@ export default function Memo_entry() {
 
         // validation checks for bank name and cheque number
         var cheque_num = document.getElementById('cheque_number').value
-        if (selectedBank == null) {
+        if (selectedBank == null && total !== 0) {
             add = false;
             setError2(old => {
                 return {...old, BankName: {
@@ -149,7 +165,7 @@ export default function Memo_entry() {
         if (add && selectedBank.name === "Cash") {
             cheque_num = "0"
         }
-        else if (cheque_num === "") {
+        else if (cheque_num === "" && total !== 0) {
             add = false;
             setError2(old => {
                 return {...old, ChequeNumber: {
@@ -172,6 +188,28 @@ export default function Memo_entry() {
         
     }
 
+    // used to track which parts are used, if used 
+    const handlePartCheckBoxChange = (bill) => {
+        
+        const {memo_id, amount} = bill;
+        
+        if (selectedPart[memo_id]) {
+            setPartAmount(old => old-amount)
+        }
+        else {
+            setPartAmount(old => old+amount)
+        }
+
+        setSelectedPart((prevCheckedItems) => ({
+          ...prevCheckedItems,
+          [memo_id]: !prevCheckedItems[memo_id],
+        }));
+      };
+
+      useEffect(()=> {
+        console.log(selectedPart)
+      }, [selectedPart])
+
     // form validation and submission
     const onSubmit = (value) => {
 
@@ -184,7 +222,7 @@ export default function Memo_entry() {
         setError2(validate);
 
         // validation check to ensure there is atleast one payment method
-        if (payment.length <= 0 && memo_type.name !== "Goods Return") {
+        if (payment.length <= 0 && total !== 0) {
             add = false;
             setError2(old => {
                 return {...old, BankName: {
@@ -211,17 +249,11 @@ export default function Memo_entry() {
             setError2(old => {return {...old, memo_type:{error: true, message: old.memo_type.message}}})
         }
 
-        // if the the %method is picked in deduction, the deduction value is calculated
-        if (deduction && deductClick) {
-            const d_percent = (value.deduction)/100
-            value.deduction = Math.ceil(value.amount*(d_percent))   
-        }
-
         // This is the maxing amount that can be entered
-        const max = setAmount(selectedBills, grAmount);
+        const max = setAmount(selectedBills, grAmount, partAmount, deduction);
 
         // Just a dummy amount for the max gr that can be done
-        const grMax = setAmount(selectedBills, 0);
+        const grMax = setAmount(selectedBills, 0, partAmount);
         const pendingMax = setAmount(bills, 0);
 
         
@@ -248,7 +280,8 @@ export default function Memo_entry() {
 
         // check if memo_type is part then amount is less than grMax
         if (memo_type.name === "Part" && value.amount > pendingMax) {
-            setError('amount', {type: "manual", message: `Amount must be less than total pending between supplier and party amount of ₹${grMax}`})
+            add = false;
+            setError('amount', {type: "manual", message: `Amount must be less than total pending between supplier and party amount of ₹${pendingMax}`})
         }
         
         // add the memo entry if there are no errors
@@ -256,11 +289,12 @@ export default function Memo_entry() {
             // setting the correct party and supplier id
             value["party_id"] = party["id"];
             value["supplier_id"] = supplier["id"];
-
             // setting custom entites which I could not add in the form hook
             value["selected_bills"] = selectedBills;
+            value["selected_part"] = Object.keys(selectedPart);
             value["payment"] = payment
             value["memo_type"] = memo_type.name
+            value["deduction"] = deduction
             
             fetch(`${base}/add/memo_entry/${JSON.stringify(value)}`).then(response => {
                 return response.json();
@@ -286,6 +320,9 @@ export default function Memo_entry() {
             setTotal(0)
             setGrAmount(0)
             setGrClick(false)
+            setPartAmount(0)
+            setCreditClick(false)
+            setDeductClick(false)
             
             // updating state to give the alive effect and closing the success window
             setTimeout(()=> {setStateTracker(old => old + 1); setSuccessNotificationOpen(false)}, 1500)
@@ -529,7 +566,7 @@ export default function Memo_entry() {
                 </div>
                 </div>
                  {/* 
-                            START OF SECTION 3: Additional Memo Information
+                            START OF SECTION 4: Additional Memo Information
                             TODO: Removing Radio Button to increase keybind efficiency
             
                 */}
@@ -540,7 +577,13 @@ export default function Memo_entry() {
                         {/* This code is for using previous and pending part */}
                         <div>
                             <PurpleSwitch checked={creditClick} 
-                            onChange = {(event, value) => {setCreditClick(value) } }
+                            onChange = {(event, value) => {
+                                setCreditClick(value) 
+                                if (!value) {
+                                    setPartAmount(0)
+                                    setSelectedPart({})
+                                }
+                            } }
                             />
                             <h3 class="dark-purple">Use Part amount?</h3>
                         </div>
@@ -548,10 +591,27 @@ export default function Memo_entry() {
                         {/* Only displayed if check button is clicked. */}
                         {creditClick &&                     
                         <div >
-                            <Chip label={`Available Part: ${credit}`} variant="outlined" />
+                            {/* {memo_id: 34, bill_id: 65, amount: 2348, date: '27/05/2023'} */}
+                            <List>
+                                {credit.map((item) => (
+                                    <ListItem key={item.memo_id} button onClick={() => handlePartCheckBoxChange(item)}>
+                                    <ListItemIcon>
+                                        <Checkbox
+                                        icon={<CheckBoxOutlineBlank />}
+                                        checkedIcon={<CheckBox />}
+                                        checked={selectedPart[item.memo_id] || false}
+                                        />
+                                    </ListItemIcon>
+                                    <ListItemText primary={`Amount: ${item.amount} | Memo Number: ${item.memo_number} | Date: ${item.date}`} />
+                                    </ListItem>
+                                ))}
+                            </List>
+
                             <TextInput label="Part Amount" type="number" 
                             errorState = {Boolean(errors.credit_amount)}
                             errorText = {errors.credit_amount?.message}
+                            value={partAmount}
+                            
                             // Here seems like text input is registered with the form
                             InputProps = {{inputProps: {...register("credit_amount", {required: "Fill in credit amount to be used", 
                             shouldUnregister: true, 
@@ -560,8 +620,8 @@ export default function Memo_entry() {
                                 message: `If no Bank Information is added, part amount must equal total: ₹${total}`
                             }, 
                             max: {
-                                value: credit > total ? total : credit,
-                                message: `Not enough available part or part used is more than total amount ₹${total}`
+                                value: partAmount > maxPart ? maxPart : partAmount,
+                                message: `Not enough available part or part used is more than total amount ₹${maxPart}`
                             }, 
                             })}}}
                             />
@@ -572,7 +632,12 @@ export default function Memo_entry() {
                         {/* This Section is for Goods Return */}
                         <div>
                             <PurpleSwitch checked={grClick} 
-                            onChange = {(event, value) => {setGrClick(value) } }
+                            onChange = {(event, value) => {
+                                setGrClick(value) 
+                                if (!value) {
+                                    setGrAmount(0)
+                                }
+                            } }
                             />
                             <h3 class="dark-purple">Add Goods Return? (GR)</h3>
                         </div>
@@ -592,8 +657,8 @@ export default function Memo_entry() {
                                 message: `GR amount cannot be negative`
                             }, 
                             max: {
-                                value: total,
-                                message: `GR amount cannot be greater than total amount: ${total}`
+                                value: maxGR,
+                                message: `GR amount cannot be greater than total amount: ${maxGR}`
                             }, 
                             })}}}
                             />
@@ -602,11 +667,16 @@ export default function Memo_entry() {
                     </fieldset>
 
 
-
+                    {/* Deductions jsx */}
                     <fieldset class="credit">
                         <div>
                         <PurpleSwitch checked={deductClick} 
-                        onChange = {(event, value) => {setDeductClick(value) } }
+                        onChange = {(event, value) => {
+                            setDeductClick(value) 
+                            if (!value) {
+                                    setDeduction(0)
+                                }
+                        } }
                         />
                         <h3 class="dark-purple">Apply Deduction?</h3>
                         </div>
@@ -616,6 +686,16 @@ export default function Memo_entry() {
                         <TextInput label="Deduction" type="number" 
                         errorState = {Boolean(errors.deduction)}
                         errorText = {errors.deduction?.message}
+                        onChange={(e) => {
+                            if (deductMode === "amount") {
+                            setDeduction(e.target.value)
+                        }
+                        else {
+                            const d_percent = (e.target.value)/100
+                            const temp_total = setAmount(selectedBills, 0, 0, 0)
+                            setDeduction(Math.ceil(temp_total*(d_percent)))
+                        }}
+                    }
                         InputProps = {{inputProps: {...register("deduction", {required: "Fill in deduction to be applied", 
                         shouldUnregister: true, 
                         min: {
@@ -623,21 +703,21 @@ export default function Memo_entry() {
                             message: "Please enter a positive number"
                         },
                         max:{
-                            value: deduction ? 100 : total,
+                            value: deductMode === "percent" ? 100 : setAmount(selectedBills, grAmount, partAmount),
                             message: "Invalid Max Value"
                         }, 
                         valueAsNumber: true
                     })}}}
 
                         />
-                        <button className={deduction ? "selected button deduction_percent" : "button deduction_percent"} 
+                        <button className={deductMode === "percent" ? "selected button deduction_percent" : "button deduction_percent"} 
                         onClick={(event) => {event.preventDefault()
-                                            setDeduction(true);
+                                            setDeductMode("percent");
                         }}>%</button>
 
-                        <button className={deduction ? "button deduction_amount" : "selected button deduction_amount"}  
+                        <button className={deductMode === "percent" ? "button deduction_amount" : "selected button deduction_amount"}  
                         onClick={(event) => {event.preventDefault()
-                                            setDeduction(false)
+                                        setDeductMode("amount");
                         
                         }}>₹</button>
                         </div>}
