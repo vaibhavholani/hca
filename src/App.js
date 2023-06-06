@@ -13,8 +13,14 @@ import Memo_entry from './windows/memo_entry/Memo_entry'
 import View from './windows/View/View'
 import Login from './windows/Login/Login'
 
+import {base} from '../../proxy_url'
+
 // creating a context
 export const LoginContext = React.createContext()
+
+export const backup = () => {
+    return fetch(`${base}/backup`).then(response => response.json())
+}
 
 // change it back to hash router
 function App() {
