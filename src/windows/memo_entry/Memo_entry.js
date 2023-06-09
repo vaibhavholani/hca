@@ -734,10 +734,10 @@ export default function Memo_entry() {
             </div>
         </div>
         <Snackbar open={successNotificationOpen} autoHideDuration={4000} >
-                <Alert  severity="success">
-                    Memo Added!
-                </Alert>
-                </Snackbar>
+            <Alert  severity="success">
+                Memo Added!
+            </Alert>
+        </Snackbar>
         </>
     )
 }

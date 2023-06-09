@@ -1,9 +1,8 @@
 import './App.css';
 import React, {useState} from 'react';
-
 import {BrowserRouter as Router, 
   Switch, Route, Link} from "react-router-dom";
-import Home from './windows/home/Home';
+import Dashboard from './windows/Dashboard/Dashboard';
 import New from './windows/New/New'
 import Report_Date from './windows/Date/Report_Date'
 import Selector from './windows/Selector/Selector'
@@ -12,15 +11,12 @@ import Multiple_Selector from './windows/Multiple_Selector/Multiple_Selector'
 import Memo_entry from './windows/memo_entry/Memo_entry'
 import View from './windows/View/View'
 import Login from './windows/Login/Login'
-
-import {base} from '../../proxy_url'
+import {base} from './proxy_url'
 
 // creating a context
 export const LoginContext = React.createContext()
 
-export const backup = () => {
-    return fetch(`${base}/backup`).then(response => response.json())
-}
+
 
 // change it back to hash router
 function App() {
@@ -40,7 +36,7 @@ function App() {
         <Route path="/selector/:mode/:type/:supplier"  component={Selector}/>
         <Route path="/register_entry/:supplier" component={Register_entry}/>
         <Route path="/view" component={View}/>
-        <Route path="/" exact component={Home}/>
+        <Route path="/" exact component={Dashboard}/>
       </Switch>
         :
         <Login />
