@@ -175,7 +175,13 @@ export default function Memo_entry() {
             }
         }) }
         
-        // if all validation checks are passed, add the payment
+        // check if cheque number and bankid are already used
+        payment.forEach(value => {
+            if (value.bank === selectedBank.name && value.cheque === cheque_num) {
+                add = false;
+            }})
+            
+                    // if all validation checks are passed, add the payment
         if (add) {
             const obj = {
                 bank: selectedBank.name, 
