@@ -60,7 +60,6 @@ export function keybind_form(key, direction, elements) {
     const setFocus = (event) => {
         
         if (event.key === key && !(event.currentTarget.classList.contains("MuiAutocomplete-input"))) {
-            console.log(event.currentTarget.classList)
             if (event.currentTarget.not_last ){
                 event.preventDefault()
             }

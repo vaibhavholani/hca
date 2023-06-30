@@ -25,9 +25,9 @@ import { CheckBoxOutlineBlank, CheckBox } from '@material-ui/icons';
 
 const setKeyBinds = () => {
     var elements = document.getElementsByTagName('input');
-      keybind_form("Enter", "forward", elements)
-      keybind_form("ArrowDown", "forward", elements)
-      keybind_form("ArrowUp", 'backward', elements)
+    keybind_form("Enter", "forward", elements)
+    keybind_form("ArrowDown", "forward", elements)
+    keybind_form("ArrowUp", 'backward', elements)
 }
 
 function Alert(props) {
@@ -227,6 +227,9 @@ export default function Memo_entry() {
         // reset all errors
         setError2(validate);
 
+        // ensuring value.amount is total
+        value.amount = total;
+
         // validation check to ensure there is atleast one payment method
         if (payment.length <= 0 && total !== 0) {
             add = false;
@@ -329,6 +332,7 @@ export default function Memo_entry() {
             setPartAmount(0)
             setCreditClick(false)
             setDeductClick(false)
+            setSelectedBills([])
             
             // updating state to give the alive effect and closing the success window
             setTimeout(()=> {setStateTracker(old => old + 1); setSuccessNotificationOpen(false)}, 1500)
@@ -545,11 +549,16 @@ export default function Memo_entry() {
                         <TextInput label="Cheque Number" id="cheque_number"
                             disabled={useCheque}
                             onKeyPress={(e) => {
-                                if (e.key === "Enter") {
-                                    addPayment()
-                                    document.getElementById("bank_name").focus()
+                                if (e.key === 'Enter') {
+                                e.preventDefault()
+                                console.log("I am registered")
+                                // manually going to the next element
+                                if (memo_type.name === "Part") {
+                                    document.getElementById("memo_number").focus()
+                                } else {
+                                    document.getElementById("bill_numbers").focus()
                                 }
-                            }}
+                                }}}
                             type="number" errorState={error.ChequeNumber.error} errorText={error.ChequeNumber.message} />
                         
 
