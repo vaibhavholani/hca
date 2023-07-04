@@ -6,6 +6,7 @@ import {useParams, useHistory} from 'react-router-dom'
 import Popper from '@material-ui/core/Popper'
 import {Button, ButtonGroup} from '@material-ui/core'
 import {base} from '../../proxy_url'
+import { ReportGenerator } from '../Reports/ReportGenerator';
 
 const loadOptions = (mode)=> {
     
@@ -66,16 +67,9 @@ export default function Multiple_Selector() {
                 body: JSON.stringify({suppliers: suppliers, parties: JSON.stringify(selected), report: report, from: from, to: to})
             }
             fetch(base + '/create_report', requestOptions).then(response => {
-                return response.blob()
-            }).then(blob => {
-                const link = document.createElement('a')
-                link.href = URL.createObjectURL(blob)
-                link.download = `${report}.pdf`
-                document.body.append(link);
-                link.click();
-                link.remove();
-                // in case the Blob uses a lot of memory
-                setTimeout(() => URL.revokeObjectURL(link.href), 7000);
+                return response.json()
+            }).then(json => {
+                ReportGenerator(json)
             })
             .catch(err => console.error(err));
             }
