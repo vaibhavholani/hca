@@ -228,7 +228,8 @@ export default function Memo_entry() {
         setError2(validate);
 
         // ensuring value.amount is total
-        value.amount = total;
+        if (memo_type.name !== "Part") {
+                value.amount = total; }
 
         // validation check to ensure there is atleast one payment method
         if (payment.length <= 0 && total !== 0) {
