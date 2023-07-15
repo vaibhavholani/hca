@@ -6,9 +6,9 @@ import {keybind_form} from "../../hooks/keybind.js"
 import TextInput from "../Custom/TextInput"
 import {validate} from './validate'
 import {validate_required} from '../Custom/validate'
-import MuiAlert from '@material-ui/lab/Alert'
 import Snackbar from '@material-ui/core/Snackbar'
 import {base} from '../../proxy_url'
+import Notification from '../Custom/Notification'
 
 const setKeyBinds = () => {
     // Setting enter keybinds
@@ -20,19 +20,30 @@ const setKeyBinds = () => {
     // 
 }
 
-function Alert(props) {
-    return <MuiAlert elevation={6} variant="filled" {...props} />;
-  }
 
 export default function New() {
 
-    const {register, handleSubmit} = useForm();
+    const {register, handleSubmit, reset} = useForm();
     const {entity} = useParams();
     const [error, setError] = useState(validate);
+    const [status, setStatus] = useState({status: "okay", message: "Entity Added"}); 
     const [open, setOpen] = useState(false);
+    const [initialRender, setInitialRender] = useState(true); // Add initialRender flag
+
+    useEffect(() => {
+        if (!initialRender) {
+            if (status.status === "okay") {
+                reset()
+            }
+            setOpen(true)
+          } else {
+            setInitialRender(false);
+          }
+        
+    }
+    , [status])   
 
     const OnSubmit = data => {
-        console.log("I am here")
         setError(validate);
         const {err_status, update} = validate_required(data);
         if (err_status) {
@@ -40,8 +51,11 @@ export default function New() {
         }
         else {
             fetch(`${base}/add/individual/${entity}/${data["name"]}/${data["phone"]}/${data["address"]}`)
-            setOpen(true);
-            setTimeout(()=> {setOpen(false)}, 3000)
+            .then(response => 
+                {response.json()}).then(json => {
+                    setStatus(old => {return ({...old, ...json})})
+                })
+
         }
         
     }
@@ -79,11 +93,7 @@ export default function New() {
                
                 </div>    
             </form>
-            <Snackbar open={open} autoHideDuration={4000} >
-                <Alert  severity="success">
-                    {entity} Added!
-                </Alert>
-                </Snackbar>
+            <Notification message={status.message} severity={status.status == "okay" ? "success": "error"} notificationOpen={open} setNotificationOpen={setOpen} />
            
 
         </div>
