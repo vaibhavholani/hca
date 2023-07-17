@@ -23,7 +23,7 @@ const useStyles = makeStyles({
     }
 })
 
-export default function TextInput({label, id, name, type, errorState, errorText, props, defaultValue, disabled, custom, InputProps, value, onChange, key}) {
+export default function TextInput({label, id, name, type, errorState, errorText, props, defaultValue, disabled, custom, InputProps, value, onChange, key, onKeyPress}) {
 
     const classes = useStyles()
     return (
@@ -39,6 +39,7 @@ export default function TextInput({label, id, name, type, errorState, errorText,
                 helperText = {errorState ? errorText: undefined}
                 defaultValue = {defaultValue}
                 InputProps={InputProps}
+                onKeyPress = {onKeyPress}
                 {...props}
                 value = {value}
                 onChange = {onChange}

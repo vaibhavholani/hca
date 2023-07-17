@@ -128,150 +128,176 @@ for (let i = 0; i < noOfHeadings; i++) {
     const noOfSubheadings = reportData.headings[i].subheadings.length;
 
     for (let j = 0; j < noOfSubheadings; j++) {
-    const currentTable = currentSection.subheadings[j];
+      const currentTable = currentSection.subheadings[j];
 
-    // Subheading/table name
-    yCoord += 4;
-    doc.setFontSize(10);
-    doc.text(currentTable.title, 105, yCoord, "center");
-    doc.setFontSize(8);
+      // Subheading/table name
+      yCoord += 4;
+      doc.setFontSize(10);
+      doc.text(currentTable.title, 105, yCoord, "center");
+      yCoord += 4;
+      doc.setFontSize(8);
 
-    // Extracting maxKeysArr from dataRows
-    const dataRows = currentTable.dataRows;
-    const maxKeysArr = extractMaxKeysArr(dataRows);
+      // Extracting maxKeysArr from dataRows
+      const dataRows = currentTable.dataRows;
+      const maxKeysArr = extractMaxKeysArr(dataRows);
 
-    // Preparing body rows for the table
-    const noOfDataRows = dataRows.length;
-    const bodyRows = generateBodyRows(dataRows, maxKeysArr);
+      // Preparing body rows for the table
+      const noOfDataRows = dataRows.length;
+      const bodyRows = generateBodyRows(dataRows, maxKeysArr);
 
-    // Processing special rows
-    const noOfSpecRows = currentTable.specialRows ? currentTable.specialRows.length : 0;
-    let k = 0;
+      // Processing special rows
+      const noOfSpecRows = currentTable.specialRows ? currentTable.specialRows.length : 0;
+      let k = 0;
+      
+      // running this till all special rows are processed
+      while (k < noOfSpecRows) {
+          const currValArr = [];
 
-    while (k < noOfSpecRows) {
-        const currValArr = [];
-
-        for (let l = 0; l < maxKeysArr.length; l++) {
-        currValArr.push(null);
-        }
-
-        while (k < noOfSpecRows) {
-        const colName = currentTable.specialRows[k]["column"];
-        const colIndex = maxKeysArr.indexOf(colName);
-
-        if (colIndex === 0) {
-            if (currValArr[colIndex] !== null) {
-            break;
+          // pushing nulls into an array for in the space of all columns
+          for (let l = 0; l < maxKeysArr.length; l++) {
+          currValArr.push(null);
+          }
+          // try to process all special rows here when we are looping through at each iteration we wanna look through all the special rows
+          while (k < noOfSpecRows) {
+          
+          // going for first special row
+          const colName = currentTable.specialRows[k]["column"];
+          // finding where at which column
+          const colIndex = maxKeysArr.indexOf(colName);
+          
+            if (colIndex === -1) {
+                // skip the element
+                k++;
+                break;
             }
-        } else {
-            if (currValArr[colIndex] !== null || currValArr[colIndex - 1] !== null) {
-            break;
+
+            if (colIndex === 0) {
+                if (currValArr[colIndex] !== null) {
+                break;
+                }
+            } else {
+                if (currValArr[colIndex] !== null || currValArr[colIndex - 1] !== null) {
+                break;
+                }
             }
-        }
 
-        if (colIndex === 0) {
-            currValArr[colIndex] = `${currentTable.specialRows[k]["name"]}: ${currentTable.specialRows[k]["value"]}`;
-        } else {
-            currValArr[colIndex - 1] = currentTable.specialRows[k]["name"];
-            currValArr[colIndex] = currentTable.specialRows[k]["value"];
-        }
+            if (colIndex === 0) {
+                currValArr[colIndex] = `${currentTable.specialRows[k]["name"]}: ${currentTable.specialRows[k]["value"]}`;
+            } else {
+                currValArr[colIndex - 1] = currentTable.specialRows[k]["name"];
+                currValArr[colIndex] = currentTable.specialRows[k]["value"];
+            }
 
-        k++;
-        }
+            k++;
+          }
 
-        bodyRows.push(currValArr);
-    }
+          bodyRows.push(currValArr);
+      }
 
-    // Creating custom column styles
-    const columnStyles = filterAndGenerateFillColors(maxKeysArr, ["memo", "chk"], [242, 242, 242]);
+      // Creating custom column styles
+      const columnStyles = filterAndGenerateFillColors(maxKeysArr, ["memo", "chk", "part"], [242, 242, 242]);
 
-    // Creating table
-    yCoord += 4;
-    doc.autoTable({
-        startY: yCoord,
-        head: [maxKeysArr],
-        body: bodyRows,
-        theme: "grid",
-        styles: {
-        halign: "center",
-        valign: "middle",
-        cellPadding: 0.5,
-        },
-        columnStyles: columnStyles,
-        didParseCell: (data) => {
-        const row = data.row.index;
-        const col = data.column.index;
-        const cellText = data.cell.raw;
+      // Creating table
+      doc.autoTable({
+          startY: yCoord,
+          head: [maxKeysArr],
+          body: bodyRows,
+          theme: "grid",
+          styles: {
+          halign: "center",
+          valign: "middle",
+          cellPadding: 0.5,
+          },
+          columnStyles: columnStyles,
+          didParseCell: (data) => {
+          const row = data.row.index;
+          const colName = maxKeysArr[data.column.index];
+          const cellText = data.cell.raw;
 
-        if (row >= noOfDataRows) {
-            data.cell.styles.fillColor = [217, 217, 217];
-        }
-        
-        if (cellText === "G") {
-            data.cell.text = "GR";
-            data.cell.styles.fillColor = [255, 128, 128];
-          } else if (cellText === "D") {
-            data.cell.text = "LESS";
-            data.cell.styles.fillColor = [255, 128, 128];
-          } else if (cellText === "F") {
-            data.cell.text = "FULL";
-            data.cell.styles.fillColor = [133, 224, 133];
-          } 
-          else if (cellText === "PR") {
-            data.cell.text = "PART";
-            data.cell.styles.fillColor = [102, 179, 255];
-          } 
-          else if (cellText === "N") {
-            data.cell.text = "NULL";
-            data.cell.styles.fillColor = [255, 128, 128];
-          } 
-        },
-    });
+          if (row >= noOfDataRows) {
+              data.cell.styles.fillColor = [217, 217, 217];
+          }
+          
+          if (cellText === "G") {
+              data.cell.text = "GR";
+              data.cell.styles.fillColor = [255, 128, 128];
+            } else if (cellText === "D") {
+              data.cell.text = "LESS";
+              data.cell.styles.fillColor = [255, 128, 128];
+            } else if (cellText === "F") {
+              data.cell.text = "FULL";
+              data.cell.styles.fillColor = [133, 224, 133];
+            } 
+            else if (cellText === "PR") {
+              data.cell.text = "PART";
+              data.cell.styles.fillColor = [102, 179, 255];
+            } 
+            else if (cellText === "N") {
+              data.cell.text = "NULL";
+              data.cell.styles.fillColor = [255, 128, 128];
+            } 
 
-    // Updating yCoord to end of created table
-    yCoord = doc.lastAutoTable.finalY;
+            if (colName === "days") {
+              const days = parseInt(cellText);
+              if (isNaN(days) == false) {
+                if (days < 60) {
+                  data.cell.styles.fillColor = [133, 224, 133];
+                }
+                else if (days > 60 && days < 120) {
+                  data.cell.styles.fillColor = [255, 255, 0];
+                }
+                else if (days > 120) {
+                  data.cell.styles.fillColor = [255, 128, 128];
+                }
+              }
+            }
+          },
+      });
 
-    // Handling partRows
-    const partRows = currentTable.partRows;
+      // Updating yCoord to end of created table
+      yCoord = doc.lastAutoTable.finalY;
 
-    if (partRows && partRows.length > 0) {
-    const partMaxKeysArr = extractMaxKeysArr(partRows);
-    const partBodyRows = generateBodyRows(partRows, partMaxKeysArr);
+      // Handling partRows
+      const partRows = currentTable.partRows;
 
-    const partColumnStyles = filterAndGenerateFillColors(partMaxKeysArr, ["memo", "chk"], [242, 242, 242]);
+      if (partRows && partRows.length > 0) {
+      const partMaxKeysArr = extractMaxKeysArr(partRows);
+      const partBodyRows = generateBodyRows(partRows, partMaxKeysArr);
 
-    yCoord += 2;
+      const partColumnStyles = filterAndGenerateFillColors(partMaxKeysArr, ["memo", "chk"], [242, 242, 242]);
 
-    // Calculate the required width and height of the partRows table based on the content
-    const partTableWidth = Math.min(doc.internal.pageSize.width - 30, doc.getStringUnitWidth(partMaxKeysArr.join("")) * 8 + 20);
-    const partTableHeight = partBodyRows.length * 10 + 10;
+      yCoord += 2;
 
-    doc.autoTable({
-        startY: yCoord,
-        tableWidth: partTableWidth,
-        tableHeight: partTableHeight,
-        head: [partMaxKeysArr],
-        body: partBodyRows,
-        theme: "grid",
-        styles: {
-        halign: "center",
-        valign: "middle",
-        cellPadding: 0.5,
-        },
-        columnStyles: partColumnStyles,
-        didParseCell: (data) => {
-        const row = data.row.index;
-        const col = data.column.index;
-        
+      // Calculate the required width and height of the partRows table based on the content
+      const partTableWidth = Math.min(doc.internal.pageSize.width - 30, doc.getStringUnitWidth(partMaxKeysArr.join("")) * 8 + 20);
+      const partTableHeight = partBodyRows.length * 10 + 10;
 
-        if (row >= partRows.length) {
-            data.cell.styles.fillColor = [217, 217, 217];
-        }
-    }
-    });
+      doc.autoTable({
+          startY: yCoord,
+          tableWidth: partTableWidth,
+          tableHeight: partTableHeight,
+          head: [partMaxKeysArr],
+          body: partBodyRows,
+          theme: "grid",
+          styles: {
+          halign: "center",
+          valign: "middle",
+          cellPadding: 0.5,
+          },
+          columnStyles: partColumnStyles,
+          didParseCell: (data) => {
+          const row = data.row.index;
+          const col = data.column.index;
+          
 
-    yCoord = doc.lastAutoTable.finalY; 
-    }
+          if (row >= partRows.length) {
+              data.cell.styles.fillColor = [217, 217, 217];
+          }
+      }
+      });
+
+      yCoord = doc.lastAutoTable.finalY; 
+      }
     }
 }
 
