@@ -12,6 +12,7 @@ import { autoTable } from 'jspdf-autotable';
 
 // helper function to generate differnt colors for certain columns
 function filterAndGenerateFillColors(data, keywords, fillColor) {
+    
     const filteredData = data
       .map((entry, index) => ({ entry, index }))
       .filter(({ entry }) => {
@@ -310,6 +311,24 @@ export function ReportGenerator(reportData) {
         yCoord = doc.lastAutoTable.finalY; 
         }
       }
+
+      // Adding Cumulative value if present
+      if (currentSection.cumulative) {
+        // Heading top line
+        yCoord += 2;
+        doc.line(15, yCoord, 195, yCoord);
+  
+        // Heading
+        yCoord += 5;
+        doc.setFont("helvetica", "bold");
+        doc.setFontSize(10);
+        const indexText = `${currentSection.cumulative.name}: ${reportData.headings[i].cumulative.value}`
+        doc.text(indexText, 105, yCoord, "center");
+  
+        // Heading bottom line
+        yCoord += 2;
+        doc.line(15, yCoord, 195, yCoord);
+      }
   }
 
   yCoord = doc.lastAutoTable.finalY + 15;
@@ -327,18 +346,39 @@ export function ReportGenerator(reportData) {
 
 // Generate the index page
 doc.addPage();
-doc.setFontSize(12);
+// get current page number
+let indexStartPageNumber = doc.internal.getNumberOfPages();
+
+doc.setFontSize(18);
 doc.setFont("helvetica", "bold");
-doc.text("Index Page", 105, 10, "center");
+doc.text(`${reportData.title} Index Page`, 105, 10, "center");
+
+// Creating date and time stamp
+doc.setFontSize(10);
+doc.setFont("helvetica", "normal");
+doc.text(getFormattedDateTime(), 195, 5, "right");
+doc.text(`From: ${reportData.from}`, 195, 9, "right");
+doc.text(`To: ${reportData.to}`, 195, 13, "right");
+
+const headingXCoord = 17;
+const subheadingXCoord = 37;
+const pageNumberHeadingXCoord = 157;
+const pageNumberXCoord = 177;
+
+// Adding Line to separate index data
+doc.line(15, 16, 195, 16);
 
 doc.setFontSize(10);
-
-let indexYCoord = 15;
+doc.setFont("helvetica", "bold");
+let indexYCoord = 20;
 let subheadingIndex = 0;
 
 // Heading names and page numbers
-doc.text("Heading Names", 50, indexYCoord);
-doc.text("Page Numbers", 150, indexYCoord);
+doc.text("Heading Names", headingXCoord, indexYCoord);
+doc.text("Page Numbers", pageNumberHeadingXCoord, indexYCoord);
+
+// Adding Line to separate index data
+doc.line(15, 22, 195, 22);
 
 for (let i = 0; i < noOfHeadings; i++) {
   const requiredHeadingSpace = 8;
@@ -351,8 +391,10 @@ for (let i = 0; i < noOfHeadings; i++) {
     indexYCoord += 8;
   }
   doc.setFont("helvetica", "bold");
-  doc.text(reportData.headings[i].title, 50, indexYCoord);
-  doc.text(headingPageNumbers[i].toString(), 150, indexYCoord);
+  const indexText = reportData.headings[i].cumulative ? `${reportData.headings[i].title} | ${reportData.headings[i].cumulative.name}: ${reportData.headings[i].cumulative.value}` : reportData.headings[i].title;
+  doc.text(indexText, headingXCoord, indexYCoord);
+
+  doc.text(headingPageNumbers[i].toString(), pageNumberXCoord, indexYCoord);
 
   const noOfSubheadings = reportData.headings[i].subheadings.length;
 
@@ -372,20 +414,30 @@ for (let i = 0; i < noOfHeadings; i++) {
     doc.setFont("helvetica", "normal");
     doc.text(
       reportData.headings[i].subheadings[j].title,
-      60,
+      subheadingXCoord,
       subheadingYCoord
     );
     doc.text(
       subheadingPageNumbers[subheadingIndex].toString(),
-      150,
+      pageNumberXCoord,
       subheadingYCoord
     );
     subheadingIndex++;
   }
 }
-subheadingIndex = 0;
 
+  // finding index end page
+  const indexEndPageNumber = doc.internal.getNumberOfPages();
 
+  // total number of index pages
+  const noOfIndexPages = indexEndPageNumber - indexStartPageNumber + 1;
+
+  // Add the index pages to newDoc
+  for (let i = 0; i < noOfIndexPages; i++) {
+    doc.movePage(indexEndPageNumber,1)
+  }
+
+  // Save or display the newDoc with the reordered pages
   doc.save(`${reportData.title}.pdf`);
 }
 

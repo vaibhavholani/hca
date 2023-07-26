@@ -69,7 +69,7 @@ export default function Multiple_Selector() {
             fetch(base + '/create_report', requestOptions).then(response => {
                 return response.json()
             }).then(json => {
-                // console.log(json)
+                console.log(json)
                 ReportGenerator(json)
             })
             .catch(err => console.error(err));
