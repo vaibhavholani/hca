@@ -141,9 +141,12 @@ export function ReportGenerator(reportData) {
         
         // Subheading/table name
         yCoord += 4;
+
         doc.setFontSize(10);
-        doc.text(currentTable.title, 105, yCoord, "center");
-        yCoord += 4;
+        if (currentTable.title !== "") {
+          doc.text(currentTable.title, 105, yCoord, "center");
+          yCoord += 4;
+        }
         doc.setFontSize(8);
 
         // Extracting maxKeysArr from dataRows
@@ -391,37 +394,40 @@ for (let i = 0; i < noOfHeadings; i++) {
     indexYCoord += 8;
   }
   doc.setFont("helvetica", "bold");
-  const indexText = reportData.headings[i].cumulative ? `${reportData.headings[i].title} | ${reportData.headings[i].cumulative.name}: ${reportData.headings[i].cumulative.value}` : reportData.headings[i].title;
-  doc.text(indexText, headingXCoord, indexYCoord);
+  const indexHeadingText = reportData.headings[i].cumulative ? `${reportData.headings[i].title} | ${reportData.headings[i].cumulative.name}: ${reportData.headings[i].cumulative.value}` : reportData.headings[i].title;
+  doc.text(indexHeadingText, headingXCoord, indexYCoord);
 
   doc.text(headingPageNumbers[i].toString(), pageNumberXCoord, indexYCoord);
 
   const noOfSubheadings = reportData.headings[i].subheadings.length;
 
   for (let j = 0; j < noOfSubheadings; j++) {
-    const requiredSpace = 4;
-    const remainingSpace = doc.internal.pageSize.height - indexYCoord;
-
-    if (requiredSpace > remainingSpace) {
-      doc.addPage();
-      indexYCoord = 15;
+    if (reportData.headings[i].subheadings[j].displayOnIndex == true) {
+      const requiredSpace = 4;
+      const remainingSpace = doc.internal.pageSize.height - indexYCoord;
+  
+      if (requiredSpace > remainingSpace) {
+        doc.addPage();
+        indexYCoord = 15;
+      }
+      else {
+        indexYCoord += requiredSpace;
+      }
+      
+      const indexSubheadingText = reportData.headings[i].subheadings[j].cumulative ? `${reportData.headings[i].subheadings[j].title} | ${reportData.headings[i].subheadings[j].cumulative.name}: ${reportData.headings[i].subheadings[j].cumulative.value}` : reportData.headings[i].subheadings[j].title;
+      const subheadingYCoord = indexYCoord;
+      doc.setFont("helvetica", "normal");
+      doc.text(
+        indexSubheadingText,
+        subheadingXCoord,
+        subheadingYCoord
+      );
+      doc.text(
+        subheadingPageNumbers[subheadingIndex].toString(),
+        pageNumberXCoord,
+        subheadingYCoord
+      ); 
     }
-    else {
-      indexYCoord += requiredSpace;
-    }
-
-    const subheadingYCoord = indexYCoord;
-    doc.setFont("helvetica", "normal");
-    doc.text(
-      reportData.headings[i].subheadings[j].title,
-      subheadingXCoord,
-      subheadingYCoord
-    );
-    doc.text(
-      subheadingPageNumbers[subheadingIndex].toString(),
-      pageNumberXCoord,
-      subheadingYCoord
-    );
     subheadingIndex++;
   }
 }

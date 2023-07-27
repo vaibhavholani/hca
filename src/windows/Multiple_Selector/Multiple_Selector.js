@@ -3,7 +3,6 @@ import Autocomplete from '@material-ui/lab/Autocomplete'
 import TextField from '@material-ui/core/TextField'
 import Home from "../home/Home"
 import {useParams, useHistory} from 'react-router-dom'
-import Popper from '@material-ui/core/Popper'
 import {Button, ButtonGroup} from '@material-ui/core'
 import {base} from '../../proxy_url'
 import { ReportGenerator } from '../Reports/ReportGenerator';
