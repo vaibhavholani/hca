@@ -67,7 +67,7 @@ const NewItems = [
     }, 
     {
         title: 'Transporter',
-        url: `${router_base}/new/transporter`,
+        url: `${router_base}/new/transport`,
         cName: 'new-links links'
     }
 

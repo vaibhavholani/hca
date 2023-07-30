@@ -7,8 +7,12 @@ import Notification from '../Custom/Notification'
 
 export default function Dashboard() {
 
+    const [status, setStatus] = useState({
+        status: "okay",
+        message: "Backup Successful",
+      });
     const [successNotificationOpen, setSuccessNotificationOpen] = useState(false);
-
+    const [initialRender, setInitialRender] = useState(true);
 
     return (
         <>
@@ -17,6 +21,9 @@ export default function Dashboard() {
         
         <Notification message="Backup Successful" 
                     severity="success" 
+                    status={status}
+                    initialRender={initialRender}
+                    setInitialRender={setInitialRender}
                     notificationOpen={successNotificationOpen} 
                     setNotificationOpen={setSuccessNotificationOpen} />
         </>
