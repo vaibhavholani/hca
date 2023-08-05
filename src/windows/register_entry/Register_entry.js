@@ -147,7 +147,7 @@ export default function Register_entry() {
             <div>
               <TextInput
                 label="Bill Date"
-                type="register_date"
+                type="date"
                 defaultValue={date}
                 errorState={false}
                 errorText="Invalid Date"
