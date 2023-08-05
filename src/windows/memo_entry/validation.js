@@ -1,5 +1,5 @@
 export const validate = {
-    memo_type: {
+    mode: {
         error: false,
         message: "Please select a Memo Type"
     }, 
@@ -14,7 +14,7 @@ export const validate = {
         message: "Duplicate Memo Number"
     },
 
-    memo_date: {
+    register_date: {
         error: false, 
         message: ""
     },

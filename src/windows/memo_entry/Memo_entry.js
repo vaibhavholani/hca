@@ -17,6 +17,7 @@ import {withStyles} from '@material-ui/core/styles'
 import MuiAlert from '@material-ui/lab/Alert'
 import Snackbar from '@material-ui/core/Snackbar'
 import {base} from '../../proxy_url'
+import Notification from '../Custom/Notification'
 
 
 import {update_bill_color, getBillNumbers, getBank, getCredit, getDate} from './helpers'
@@ -29,10 +30,6 @@ const setKeyBinds = () => {
     keybind_form("ArrowDown", "forward", elements)
     keybind_form("ArrowUp", 'backward', elements)
 }
-
-function Alert(props) {
-    return <MuiAlert elevation={6} variant="filled" {...props} />;
-  }
 
 // Custom Style button for credit add gr, credit or deduction
 const PurpleSwitch = withStyles({
@@ -62,7 +59,7 @@ const setAmount = (bills, grAmount, partAmount=0, deduction=0) => {
 export default function Memo_entry() {
     
     const [stateTracker, setStateTracker] = useState(0);
-    const {register, handleSubmit, formState: {errors}, clearErrors, setError} = useForm();
+    const {register, handleSubmit, formState: {errors}, clearErrors, setError, reset} = useForm();
     var {party, supplier} = useParams();
     party= JSON.parse(party);
     supplier = JSON.parse(supplier);
@@ -74,7 +71,7 @@ export default function Memo_entry() {
     const [partAmount, setPartAmount] = useState(0)
     const [selectedPart, setSelectedPart] = useState({})
     
-    const [memo_type, setMemoType] = useState({name: ""});
+    const [mode, setMode] = useState({name: ""});
     const [chequeNum, setChequeNum] = useState(0);
     const [payment, setPayment] = useState([])
     const [creditClick, setCreditClick] = useState(false);
@@ -96,12 +93,13 @@ export default function Memo_entry() {
     
     const date = getDate();
     
-    const [successNotificationOpen, setSuccessNotificationOpen] = useState(false);
-   
-    // temp: removee this later
-    useEffect(()=> {
-        console.log("deduction")
-    }, [deduction])
+    // Notification settings
+    const [status, setStatus] = useState({
+        status: "okay",
+        message: "Memo Entry Added",
+      });
+    const [notificationOpen, setNotificationOpen] = useState(false);
+    const [initialRender, setInitialRender] = useState(true); // Add initialRender flag
 
 
     useEffect(()=> {
@@ -115,7 +113,7 @@ export default function Memo_entry() {
     useEffect(()=>{
 
         // resetting focus and keybinds
-        document.getElementById("memo_type").focus()
+        document.getElementById("mode").focus()
         setKeyBinds();
 
         //getting informatin about partial amounts dynamically and updating it
@@ -141,8 +139,9 @@ export default function Memo_entry() {
     useEffect(()=> {
         // everytime memo type changed, the keybinds need be to set accodingly 
         // because different parts of the component are rendered
+        resetMemoEntry()
         setKeyBinds();
-    }, [memo_type])
+    }, [mode])
 
     const addPayment = () => {
 
@@ -228,7 +227,7 @@ export default function Memo_entry() {
         setError2(validate);
 
         // ensuring value.amount is total
-        if (memo_type.name !== "Part") {
+        if (mode.name !== "Part") {
                 value.amount = total; }
 
         // validation check to ensure there is atleast one payment method
@@ -248,15 +247,15 @@ export default function Memo_entry() {
         }
 
         // checking that atlest one bill is selected
-        if (selectedBills.length <= 0 && memo_type.name !== "Part") {
+        if (selectedBills.length <= 0 && mode.name !== "Part") {
             add = false;
             setError2(old => {return {...old, BillNumbers: {error: true, message: old.BillNumbers.message}}})
         } 
 
         // checking that memo type is selected
-        if (memo_type.name === "") {
+        if (mode.name === "") {
             add = false;
-            setError2(old => {return {...old, memo_type:{error: true, message: old.memo_type.message}}})
+            setError2(old => {return {...old, mode:{error: true, message: old.mode.message}}})
         }
 
         // This is the maxing amount that can be entered
@@ -268,28 +267,28 @@ export default function Memo_entry() {
 
         
         // check if gr amount is valid
-        if (memo_type.name === "Full" && grAmount > grMax) {
+        if (mode.name === "Full" && grAmount > grMax) {
             add= false;
-            setError('memo_gr_amount', {type: "manual", message: `GR Amount must be less than or equal to ₹${grMax}`})}
+            setError('gr_amount', {type: "manual", message: `GR Amount must be less than or equal to ₹${grMax}`})}
         
         // if the value is not exact equal to max, there is an error
-        if (memo_type.name === "Full" && value.amount != max) {
+        if (mode.name === "Full" && value.amount != max) {
             add = false;
             setError('amount', {type: "manual", message: `Amount must be less than or equal to₹${max}`})
         }
         // one can't put a bigger part than the selected bill amount total
-        else if (memo_type.name === "Partial" && value.amount > max) {
+        else if (mode.name === "Partial" && value.amount > max) {
             add = false;
             setError('amount', {type: "manual", message: `Amount must be less than or equal to ₹${max}`})
         }
         // you can't return more than there is to return
-        else if (memo_type.name === "Goods Return" && value.amount > max) {
+        else if (mode.name === "Goods Return" && value.amount > max) {
             add = false;
             setError('amount', {type: "manual", message: `GR Amount must be less than or equal to ₹${max}`})
         }
 
-        // check if memo_type is part then amount is less than grMax
-        if (memo_type.name === "Part" && value.amount > pendingMax) {
+        // check if mode is part then amount is less than grMax
+        if (mode.name === "Part" && value.amount > pendingMax) {
             add = false;
             setError('amount', {type: "manual", message: `Amount must be less than total pending between supplier and party amount of ₹${pendingMax}`})
         }
@@ -303,44 +302,45 @@ export default function Memo_entry() {
             value["selected_bills"] = selectedBills;
             value["selected_part"] = Object.keys(selectedPart);
             value["payment"] = payment
-            value["memo_type"] = memo_type.name
+            value["mode"] = mode.name
             value["deduction"] = deduction
-            
-            fetch(`${base}/add/memo_entry/${JSON.stringify(value)}`).then(response => {
-                return response.json();
-            }).then(data => {
-                const {status, ...err} = data;
-                // setting an error if one is found in the backend
-                if (status === "error") {
-                    Object.keys(err).forEach(value => {
-                        setError(value, {type: "manual", message: err[value].message})
-                    })
-                }
-                else {
-                // else showing the success badge
-                setSuccessNotificationOpen(true)
-                }
 
-            }).catch(err => {
-                // Do something for an error here
-                console.log("Error Reading data " + err);
-            });
-
-            // resetting values
-            setTotal(0)
-            setGrAmount(0)
-            setGrClick(false)
-            setPartAmount(0)
-            setCreditClick(false)
-            setDeductClick(false)
-            setSelectedBills([])
-            
-            // updating state to give the alive effect and closing the success window
-            setTimeout(()=> {setStateTracker(old => old + 1); setSuccessNotificationOpen(false)}, 1500)
+            // sending the data to the backend
+              fetch(`${base}/add/memo_entry`, {
+                method: "POST",
+                headers: {
+                  "Content-Type": "application/json",
+                },
+                body: JSON.stringify(value),
+              })
+                .then((response) => {
+                  return response.json();
+                })
+                .then((data) => { 
+                  setStatus(data)
+                })
+                .catch((err) => {
+                  // Do something for an error here
+                  console.log("Error Reading data " + err);
+                });
             
         }
         
     }
+
+    const resetMemoEntry = () => {
+        setTotal(0)
+        setGrAmount(0)
+        setGrClick(false)
+        setDeduction(0)
+        setDeductClick(false)
+        setPartAmount(0)
+        setCreditClick(false)
+        setSelectedBills([])
+        setPayment([])
+        reset()
+        setStateTracker(old => old + 1);
+    };
 
     // remove a payment method
     const handlePaymentDeleteClick = (event) => {
@@ -374,8 +374,8 @@ export default function Memo_entry() {
                     <div class="bill_child">
                         {/* The autcomplete here is from material ui class and not a custom one */}
                         <Autocomplete 
-                            // component is not registered with memo_type
-                            id="memo_type"
+                            // component is not registered with mode
+                            id="mode"
                             // options={[{name :"Full"}, {name :"Partial"}, {name : "Goods Return"}, {name : "Credit"}]} 
                             options={[{name :"Full"}, {name : "Part"}]} 
                             getOptionLabel = {(options) => options.name}
@@ -385,15 +385,15 @@ export default function Memo_entry() {
                                 // since the mode is change the errors don'e make sense anymore
                                 clearErrors()
                                 // changing the error displayed on memo type
-                                setError2(old => {return {...old, memo_type: validate.memo_type}})
+                                setError2(old => {return {...old, mode: validate.mode}})
 
                                 // error checks to ensure incorrect value is not place in memo_entry
                                 if (value == null || value.name === "" || typeof value === 'undefined') {
-                                    setMemoType({name: ""})
-                                    setError2(old => {return {...old, memo_type:{error: true, message: old.memo_type.message}}})
+                                    setMode({name: ""})
+                                    setError2(old => {return {...old, mode:{error: true, message: old.mode.message}}})
                                 }
                                 else {
-                                    setMemoType(value);
+                                    setMode(value);
                                 }
                             }}
                             // adding key binds
@@ -401,7 +401,7 @@ export default function Memo_entry() {
                                 if (e.key === 'Enter') {
                                 e.preventDefault()
                                 // manually going to the next element
-                                if (memo_type.name === "Part") {
+                                if (mode.name === "Part") {
                                     document.getElementById("memo_number").focus()
                                 } else {
                                     document.getElementById("bill_numbers").focus()
@@ -409,7 +409,7 @@ export default function Memo_entry() {
                                 }}}
                             
                             // Fancy memo type input rendering
-                            renderInput= {(params) => <TextInput label="Memo Type" props={params} errorState={error.memo_type.error} errorText={error.memo_type.message} 
+                            renderInput= {(params) => <TextInput label="Memo Type" props={params} errorState={error.mode.error} errorText={error.mode.message} 
                              /> } />
                     </div>
 
@@ -418,11 +418,11 @@ export default function Memo_entry() {
                             // this autocomplere is used to select bill numbers
                             // NOTE: this component is not registered with useForm 
                             id="bill_numbers"
-                            multiple={(memo_type.name === "Full" || memo_type.name === "Goods Return") ? true: false}
+                            multiple={(mode.name === "Full" || mode.name === "Goods Return") ? true: false}
                             // to ensure this field is updated when memo types  is changed or a memo is submitted
-                            key={`${JSON.stringify(memo_type)} ${stateTracker}`}
+                            key={`${JSON.stringify(mode)} ${stateTracker}`}
                             options={bills}
-                            disabled={memo_type.name==="Part" ? true : false}
+                            disabled={mode.name==="Part" ? true : false}
                             getOptionLabel = {(option) => option.bill_number.toString()}
                             renderOption={(option, props) => {
                                 const {bill_number, color, pending} = option
@@ -486,9 +486,9 @@ export default function Memo_entry() {
                     <div>
                         <TextInput label="Memo Date" type="date" defaultValue={date} 
                             // use of "errors" and not error
-                            errorState={Boolean(errors.memo_date)} 
-                            errorText={errors.memo_date?.message}
-                            InputProps = {{inputProps: {...register("memo_date", {required: "Please enter a Memo date"})}}} />
+                            errorState={Boolean(errors.register_date)} 
+                            errorText={errors.register_date?.message}
+                            InputProps = {{inputProps: {...register("register_date", {required: "Please enter a Memo date"})}}} />
                     </div>
                     <div>
                     <TextInput label="Amount" type="number" 
@@ -515,7 +515,7 @@ export default function Memo_entry() {
                             START OF SECTION 3: Payment Information
             
             */}
-            {(memo_type.name !== "Goods Return") && <fieldset class="fieldset">
+            {(mode.name !== "Goods Return") && <fieldset class="fieldset">
                 <legend><p class="section-header">Payment Information</p></legend>            
                 <div class="payment_information">
                     <fieldset class="bank" >
@@ -554,7 +554,7 @@ export default function Memo_entry() {
                                 e.preventDefault()
                                 console.log("I am registered")
                                 // manually going to the next element
-                                if (memo_type.name === "Part") {
+                                if (mode.name === "Part") {
                                     document.getElementById("memo_number").focus()
                                 } else {
                                     document.getElementById("bill_numbers").focus()
@@ -587,7 +587,7 @@ export default function Memo_entry() {
             
                 */}
 
-                {memo_type.name !== "Part" ? 
+                {mode.name !== "Part" ? 
                 <div class="additional">
                     <fieldset class="credit">
                         {/* This code is for using previous and pending part */}
@@ -661,12 +661,12 @@ export default function Memo_entry() {
                         {grClick &&                     
                         <div >
                             <TextInput label="GR Amount" type="number" 
-                            errorState = {Boolean(errors.memo_gr_amount)}
-                            errorText = {errors.memo_gr_amount?.message}
+                            errorState = {Boolean(errors.gr_amount)}
+                            errorText = {errors.gr_amount?.message}
                             onChange={(e) => {
                                 setGrAmount(e.target.value)
                             }}
-                            InputProps = {{inputProps: {...register("memo_gr_amount", {required: "Please add gr amount on the bill", 
+                            InputProps = {{inputProps: {...register("gr_amount", {required: "Please add gr amount on the bill", 
                             shouldUnregister: true, 
                             min: {
                                 value: 0,
@@ -749,11 +749,16 @@ export default function Memo_entry() {
             </form>
             </div>
         </div>
-        <Snackbar open={successNotificationOpen} autoHideDuration={4000} >
-            <Alert  severity="success">
-                Memo Added!
-            </Alert>
-        </Snackbar>
+       
+        <Notification
+        status={status}
+        setError={setError2}
+        notificationOpen={notificationOpen}
+        setNotificationOpen={setNotificationOpen}
+        initialRender={initialRender}
+        setInitialRender={setInitialRender}
+        reset={resetMemoEntry}
+      />
         </>
     )
 }

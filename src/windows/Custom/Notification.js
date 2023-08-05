@@ -25,7 +25,7 @@ export default function Notification({
           return { ...old, ...status.input_errors};
       })}
       else {
-        // if reset in not null, call the function
+        // if reset is not null, call the function
         reset && reset();
       }
     }

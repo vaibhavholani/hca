@@ -108,7 +108,6 @@ export default function Register_entry() {
           return response.json();
         })
         .then((data) => {
-          console.log(data)
           setStatus(data)
         })
         .catch((err) => {
@@ -117,6 +116,11 @@ export default function Register_entry() {
         });
     }
   };
+
+  const resetRegisterEntry = () => { 
+    reset();
+    document.getElementById("bill_number").focus();
+  }
 
   const classes = useStyles();
   return (
@@ -197,7 +201,7 @@ export default function Register_entry() {
         setNotificationOpen={setNotificationOpen}
         initialRender={initialRender}
         setInitialRender={setInitialRender}
-        reset={reset}
+        reset={resetRegisterEntry}
       />
     </>
   );
