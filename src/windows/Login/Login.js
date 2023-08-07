@@ -1,6 +1,6 @@
 import React, {useState, useEffect, useContext} from 'react'
 import { LoginContext } from '../../App';
-import { ReactComponent as Logo } from '../home/logo_white.svg';
+import { ReactComponent as Logo } from '../home/ght_white.svg';
 import TextInput from '../Custom/TextInput'
 import {base} from '../../proxy_url'
 import {keybind_form} from '../../hooks/keybind.js'

@@ -3,7 +3,8 @@ import React, {useEffect} from 'react'
 import {MenuItems} from './MenuItems'
 import keybind, {keybind_single, keybind_multiple} from '../../hooks/keybind'
 import TextField from '@material-ui/core/TextField'
-import { ReactComponent as Logo } from './logo_white.svg';
+import { ReactComponent as Logo } from './ght_white.svg';
+
 import {router_base} from '../../proxy_url'
 
 

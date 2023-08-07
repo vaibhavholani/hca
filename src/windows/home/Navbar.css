@@ -34,7 +34,6 @@ body {
   .navbar-logo {
     color: #fff;
     justify-self: start;
-    margin-left: 20px;
     cursor: pointer;
     text-decoration: none;
     font-size: 2rem;
