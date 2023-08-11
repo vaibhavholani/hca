@@ -16,7 +16,7 @@ const setKeyBinds = () => {
       keybind_form("ArrowUp", 'backward', elements)
 }
 
-const getDate = (old) => {
+export const getDate = (old) => {
     // Setting date
     const  dt = new Date();
     var year  = dt.getFullYear();

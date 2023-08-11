@@ -27,12 +27,11 @@ export default function TextInput({label, id, name, type, errorState, errorText,
 
     const classes = useStyles()
     return (
-        <div>
+        <div key={key}>
             <TextField 
                 name={name}
                 error = {errorState}
                 id = {id}
-                key = {key}
                 type = {type}
                 disabled = {disabled}
                 label = {<h3>{label}</h3>}

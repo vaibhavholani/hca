@@ -8,14 +8,9 @@ import { validate } from "./validation.js";
 import TextInput from "../Custom/TextInput";
 import { keybind_form } from "../../hooks/keybind";
 import { validate_int, validate_required } from "../Custom/validate";
-import MuiAlert from "@material-ui/lab/Alert";
-import Snackbar from "@material-ui/core/Snackbar";
 import Notification from "../Custom/Notification";
 import { base } from "../../proxy_url";
 
-function Alert(props) {
-  return <MuiAlert elevation={6} variant="filled" {...props} />;
-}
 
 const useStyles = makeStyles({
   root: {
