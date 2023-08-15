@@ -27,7 +27,6 @@ export const loadOptions = (filters, setData) => {
     }).then(response => {
         return response.json();
     }).then(data => {
-        console.log(data)
         setData(data)
     })
     .catch((err) => {

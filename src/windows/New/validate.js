@@ -3,7 +3,7 @@ export const validate  = {
         error: false, 
         message: ""
     },
-    phone: {
+    phone_number: {
         error: false, 
         message: ""
     },

@@ -28,7 +28,7 @@ const setKeyBinds = () => {
   //
 };
 
-const getDate = () => {
+export const getDate = () => {
   // Setting date
   const dt = new Date();
   const year = dt.getFullYear();

@@ -128,6 +128,26 @@ export function SelectInstanceFilter({
     .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
     .join(" ");
   };
+
+  const generateLabel = (option) => {
+
+    if (option.name) return option.name;
+
+    let label = "";
+    for (const key in option) {
+      if (key.endsWith("_number")) {
+        // Convert the key to the desired format
+        label = `${key.split("_")[0].charAt(0).toUpperCase() + key.split("_")[0].slice(1)} No.: ${option[key]}`;
+      }
+    }
+    // Check if register_date is available and append it
+    if (option.register_date) {
+      label += ` | Date: ${convertDate(option.register_date)}`;
+    }
+  
+    // Return the generated label or a default label
+    return label || "No Selection";
+  };
   
   const reset = () => {
     setEntity({});
@@ -135,10 +155,6 @@ export function SelectInstanceFilter({
   useEffect(() => {
     reset();
   }, [filters]);
-  // connect it to getting complete entry from the backend
-  // setup backend such that it sends a proper
-  // error message when something is not editable and why
-  // and there you go, that's your View feature Fully Upgraded and ready to go
 
   useEffect(() => {
     if (selectedTable && selectedTable.filters) {
@@ -188,12 +204,7 @@ export function SelectInstanceFilter({
       <AutoComplete
         options={filteredData}
         getOptionLabel={(option) => {
-          if (option.name) return option.name;
-          if (option.bill_number)
-            return `Bill No.: ${option.bill_number} | Date: ${convertDate(option.register_date)}`;
-          if (option.memo_number)
-            return `Memo No.: ${option.memo_number} | Date: ${convertDate(option.register_date)}`;
-          return "No Selection";
+          return generateLabel(option);
         }}
         value={entity}
         onChange={(event, value) => {

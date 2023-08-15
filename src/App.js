@@ -9,6 +9,7 @@ import Selector from './windows/Selector/Selector'
 import Register_entry from './windows/register_entry/Register_entry'
 import Multiple_Selector from './windows/Multiple_Selector/Multiple_Selector'
 import Memo_entry from './windows/memo_entry/Memo_entry'
+import OrderFormEntry from './windows/OrderForm/OrderForm';
 import View from './windows/View/View'
 import Login from './windows/Login/Login'
 import {base} from './proxy_url'
@@ -35,6 +36,7 @@ function App() {
         <Route path="/date_select/:report" component={Report_Date} />
         <Route path="/selector/:mode/:type/:supplier"  component={Selector}/>
         <Route path="/register_entry/:supplier" component={Register_entry}/>
+        <Route path="/order_form" component={OrderFormEntry}/>
         <Route path="/view" component={View}/>
         <Route path="/" exact component={Dashboard}/>
       </Switch>

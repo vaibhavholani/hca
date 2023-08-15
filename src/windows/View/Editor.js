@@ -7,8 +7,8 @@ import MemoBill from "../MemoBill/MemoBill";
 import AccountBalanceIcon from "@material-ui/icons/AccountBalance";
 import CreditCardIcon from "@material-ui/icons/CreditCard";
 
-
 const disabled = {
+  order_form: ["id"],
   register_entry: ["id", "partial_amount", "gr_amount", "deduction", "status"],
   memo_entry: [
     "id",
@@ -26,13 +26,10 @@ export default function Editor({
   supplierNames,
   partyNames,
   selectedTable,
-  setSelectedTable, 
-  setStatus
+  setSelectedTable,
+  setStatus,
 }) {
-  
-
   const handleDeleteEntity = () => {
-
     const requestOptions = {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -41,24 +38,21 @@ export default function Editor({
     fetch(base + `/delete/${selectedTable.table}`, requestOptions)
       .then((response) => response.json())
       .then((data) => {
-        console.log(data)
         setStatus(data);
       });
   };
 
-  // const handleUpdateEntity = () => {
+  const handleUpdateEntity = () => {
+    const requestOptions = {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(entity),
+    };
 
-  //     setEditorOpen(false)
-
-  //     const requestOptions = {
-  //         method: 'POST',
-  //         headers: {'Content-Type': 'application/json'},
-  //         body: JSON.stringify(entity)
-  //     }
-
-  //     fetch(base + `/update/${selectedTable.table}`, requestOptions).then(response =>
-  //         response.json()).then(entity => setStatus(entity))
-  // }
+    fetch(base + `/update/${selectedTable.table}`, requestOptions)
+      .then((response) => response.json())
+      .then((entity) => setStatus(entity));
+  };
 
   return (
     <div>
@@ -118,7 +112,6 @@ export default function Editor({
         return (
           <TextInput
             label={key.toUpperCase()}
-            key={key}
             value={entity[key]}
             type={key === "register_date" ? "date" : null}
             disabled={
@@ -136,25 +129,28 @@ export default function Editor({
       })}
 
       <div className="editor-buttons">
-        <button
-          class="button"
-          onClick={() => {
-            handleDeleteEntity();
-          }}
-        >
-          {" "}
-          Delete{" "}
-        </button>
-        {/* <button
-          class="button"
-          onClick={() => {
-            handleUpdateEntity();
-          }}
-        >
-          Save
-        </button> */}
-      </div>
+        {selectedTable.delete && (
+          <button
+            class="button"
+            onClick={() => {
+              handleDeleteEntity();
+            }}
+          >
+            Delete
+          </button>
+        )}
 
+        {selectedTable.update && (
+          <button
+            class="button"
+            onClick={() => {
+              handleUpdateEntity();
+            }}
+          >
+            Update
+          </button>
+        )}
+      </div>
     </div>
   );
 }

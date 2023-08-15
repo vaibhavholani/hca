@@ -83,11 +83,11 @@ export default function New() {
             </div>
             <div>
               <TextInput
-                label="Phone"
+                label="Phone Number"
                 type="number"
-                errorState={error.phone.error}
-                errorText={error.phone.message}
-                props={register("phone")}
+                errorState={error.phone_number.error}
+                errorText={error.phone_number.message}
+                props={register("phone_number")}
               />
             </div>
             <div>

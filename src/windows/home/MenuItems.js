@@ -10,6 +10,11 @@ const EntryItems = [
         title: 'Memo Entry',
         url: `${router_base}/selector/Supplier/memo_entry/none`,
         cName: 'entry-links links'
+    },
+    {
+        title: 'Order Form',
+        url: `${router_base}/order_form`,
+        cName: 'entry-links links'
     }
 ]
 
@@ -30,21 +35,27 @@ const ReportItems = [
         cName: 'report-links links'
     }, 
     {
-        title: 'Payment List Summary',
-        url: `${router_base}/date_select/payment_list_summary`,
-        cName: 'report-links links'
-    },
-    
-    {
-        title: 'Grand Total List',
-        url: `${router_base}/date_select/grand_total_list`,
+        title: 'Order Form',
+        url: `${router_base}/date_select/order_form`,
         cName: 'report-links links'
     }, 
-    {
-        title: 'Legacy Payment List',
-        url: `${router_base}/date_select/legacy_payment_list`,
-        cName: 'report-links links'
-    }
+
+    // {
+    //     title: 'Payment List Summary',
+    //     url: `${router_base}/date_select/payment_list_summary`,
+    //     cName: 'report-links links'
+    // },
+    
+    // {
+    //     title: 'Grand Total List',
+    //     url: `${router_base}/date_select/grand_total_list`,
+    //     cName: 'report-links links'
+    // }, 
+    // {
+    //     title: 'Legacy Payment List',
+    //     url: `${router_base}/date_select/legacy_payment_list`,
+    //     cName: 'report-links links'
+    // }
     
     
 ]
