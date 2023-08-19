@@ -7,7 +7,7 @@ import Grid from '@material-ui/core/Grid';
 import './MemoBill.css';
 
 const types = {
-  P: { name: "Part", color: [102, 179, 255] },
+  PR: { name: "Part", color: [102, 179, 255] },
   F: { name: "Full", color: [133, 224, 133] },
   G: { name: "GR", color: [255, 128, 128] },
   D: { name: "Less", color: [255, 128, 128] },
