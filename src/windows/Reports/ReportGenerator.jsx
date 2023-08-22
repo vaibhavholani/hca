@@ -10,6 +10,19 @@ import { autoTable } from "jspdf-autotable";
 //so, to render the certain special rows before, just append these rows the the start of the bodyRows,
 //followed by the data rows and then the remaining special rows
 
+// helper function to format index page subheading
+function formatTitle(title) {
+  if (title.length === 44) {
+    return title;
+  } else if (title.length < 44) {
+    return title + " ".repeat(44 - title.length);
+  } else {
+    const startPart = title.slice(0, 20);
+    const endPart = title.slice(-20);
+    return startPart + "..." + endPart;
+  }
+}
+
 // helper function to generate differnt colors for certain columns
 function filterAndGenerateFillColors(data, keywords, fillColor) {
   const filteredData = data
@@ -131,7 +144,7 @@ export function ReportGenerator(reportData) {
     // Heading top line
     yCoord += 2;
     doc.line(15, yCoord, 195, yCoord);
-    
+
     // Heading
     yCoord += 5;
     doc.setFont("helvetica", "normal");
@@ -441,13 +454,18 @@ export function ReportGenerator(reportData) {
           indexYCoord += requiredSpace;
         }
 
-        const indexSubheadingText = reportData.headings[i].subheadings[j]
-          .cumulative
-          ? `${reportData.headings[i].subheadings[j].title} | ${reportData.headings[i].subheadings[j].cumulative.name}: ${reportData.headings[i].subheadings[j].cumulative.value}`
-          : reportData.headings[i].subheadings[j].title;
+        const indexSubheadingText = formatTitle(
+          reportData.headings[i].subheadings[j].title
+        );
+        
+        // change x cord for cumulative 
+        const indexCumulativeText = reportData.headings[i].subheadings[j].cumulative ? 
+        `| ${reportData.headings[i].subheadings[j].cumulative.name}: ${reportData.headings[i].subheadings[j].cumulative.value}` : "";
+
         const subheadingYCoord = indexYCoord;
         doc.setFont("helvetica", "normal");
         doc.text(indexSubheadingText, subheadingXCoord, subheadingYCoord);
+        doc.text(indexCumulativeText, subheadingXCoord + 85, subheadingYCoord);
         doc.text(
           subheadingPageNumbers[subheadingIndex].toString(),
           pageNumberXCoord,

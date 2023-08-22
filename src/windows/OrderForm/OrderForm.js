@@ -5,8 +5,19 @@ import Home from "../home/Home";
 import { validate as orderFormValidation } from "./orderFormValidation.js";
 import TextInput from "../Custom/TextInput";
 import Notification from "../Custom/Notification";
-import {getDate} from '../register_entry/Register_entry'
+import { keybind_form } from "../../hooks/keybind";
+import { getDate } from "../register_entry/Register_entry";
 import { base } from "../../proxy_url";
+
+const setKeyBinds = () => {
+  // Setting enter keybinds
+  var elements = document.getElementsByTagName("input");
+  keybind_form("Enter", "forward", elements);
+  // keybind_form("ArrowDown", "forward", elements)
+  // keybind_form("ArrowUp", 'backward', elements)
+
+  //
+};
 
 const OrderFormEntry = () => {
   const [parties, setParties] = useState([]);
@@ -20,13 +31,16 @@ const OrderFormEntry = () => {
   });
   const [notificationOpen, setNotificationOpen] = useState(false);
   const [initialRender, setInitialRender] = useState(true);
-  
+
   const { register, handleSubmit, reset } = useForm();
 
   const date = getDate();
 
-
   useEffect(() => {
+    // Setting key binds
+    setKeyBinds();
+    document.getElementById("suppliers").focus();
+
     // Fetch party data from API
     fetch(`${base}/party_names_and_ids`)
       .then((response) => response.json())
@@ -62,6 +76,11 @@ const OrderFormEntry = () => {
       .catch((err) => console.log("Error Reading data " + err));
   };
 
+  const reset_func= () => {
+    reset();
+    document.getElementById("suppliers").focus();
+  }
+
   return (
     <>
       <Home />
@@ -74,8 +93,17 @@ const OrderFormEntry = () => {
             <div>
               <Autocomplete
                 options={suppliers}
+                id={"suppliers"}
                 getOptionLabel={(option) => option.name}
+                autoHighlight 
                 onChange={(event, value) => setSelectedSupplier(value)}
+                onKeyPress={(e) => {
+                  if (e.key === "Enter") {
+                    document.getElementById("parties").focus();
+                    e.preventDefault();
+                    // write your functionality here
+                  }
+                }}
                 renderInput={(params) => (
                   <TextInput
                     label="Supplier Name"
@@ -90,8 +118,17 @@ const OrderFormEntry = () => {
             <div>
               <Autocomplete
                 options={parties}
+                id={"parties"}
                 getOptionLabel={(option) => option.name}
+                autoHighlight 
                 onChange={(event, value) => setSelectedParty(value)}
+                onKeyPress={(e) => {
+                  if (e.key === "Enter") {
+                    document.getElementById("order_form_number").focus();
+                    e.preventDefault();
+                    // write your functionality here
+                  }
+                }}
                 renderInput={(params) => (
                   <TextInput
                     label="Party Name"
@@ -134,7 +171,7 @@ const OrderFormEntry = () => {
         setNotificationOpen={setNotificationOpen}
         initialRender={initialRender}
         setInitialRender={setInitialRender}
-        reset={reset}
+        reset={reset_func}
       />
     </>
   );
