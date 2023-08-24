@@ -26,18 +26,39 @@ const useStyles = makeStyles({
 export default function TextInput({label, id, name, type, errorState, errorText, props, defaultValue, disabled, custom, InputProps, value, onChange, key, onKeyPress}) {
 
     const classes = useStyles()
+
+    let modifiedType = type;
+    let modifiedInputProps = { ...InputProps };  // Clone to avoid mutating the original
+    
+    if (props === undefined) {
+        props = {};
+    }
+
+    if (type === "number") {
+        modifiedType = "text";
+        modifiedInputProps = {
+            ...modifiedInputProps,
+            inputProps: {
+                ...props.inputProps,
+                ...modifiedInputProps.inputProps,  // Spread the old inputProps first
+                inputMode: 'numeric',
+                pattern: '[0-9]*'
+            }
+        };
+    }
+
     return (
         <div key={key}>
             <TextField 
                 name={name}
                 error = {errorState}
                 id = {id}
-                type = {type}
+                type={modifiedType}
                 disabled = {disabled}
                 label = {<h3>{label}</h3>}
                 helperText = {errorState ? errorText: undefined}
                 defaultValue = {defaultValue}
-                InputProps={InputProps}
+                InputProps={modifiedInputProps}
                 onKeyPress = {onKeyPress}
                 {...props}
                 value = {value}
