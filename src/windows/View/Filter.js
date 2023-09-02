@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from "react";
 import AutoComplete from "@material-ui/lab/Autocomplete";
 import TextInput from "../Custom/TextInput";
-import { view_options } from "./options.js";
 import { getDate } from "../Date/Report_Date";
 
 export function SelectTableFilter({
@@ -11,6 +10,7 @@ export function SelectTableFilter({
   supplierNames,
   partyNames,
   handleTableSelectionClick,
+  viewOptions
 }) {
   const [selectedSupplier, setSelectedSupplier] = useState(null);
   const [selectedParty, setSelectedParty] = useState(null);
@@ -26,10 +26,11 @@ export function SelectTableFilter({
 
   return (
     <>
+     {viewOptions.length > 1 && 
       <AutoComplete
         id={"select_entity"}
         className="autocomplete"
-        options={view_options}
+        options={viewOptions}
         style={{ width: 300 }}
         getOptionLabel={(options) => options.value}
         onChange={(event, value) => {
@@ -44,7 +45,7 @@ export function SelectTableFilter({
         renderInput={(params) => (
           <TextInput label={`Select Entity`} props={params} />
         )}
-      />
+      />}
       {selectedTable.supplier_party_filter ? (
         <>
           <AutoComplete
@@ -52,6 +53,7 @@ export function SelectTableFilter({
             className="autocomplete"
             value={selectedSupplier || {}}
             options={supplierNames}
+            autoHighlight 
             style={{ width: 300 }}
             getOptionLabel={(options) => (options.name ? options.name : "")}
             onChange={(event, value) => {
@@ -76,6 +78,7 @@ export function SelectTableFilter({
             value={selectedParty || {}}
             options={partyNames}
             style={{ width: 300 }}
+            autoHighlight 
             getOptionLabel={(options) => (options.name ? options.name : "")}
             onChange={(event, value) => {
               setSelectedParty(value);
@@ -207,6 +210,7 @@ export function SelectInstanceFilter({
           return generateLabel(option);
         }}
         value={entity}
+        autoHighlight 
         onChange={(event, value) => {
           if (value === null) {
             setEntity({});

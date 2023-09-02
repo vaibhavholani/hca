@@ -1,4 +1,4 @@
-export const view_options = [
+export const viewOptions = [
   {
     value: "Supplier",
     table: "supplier",

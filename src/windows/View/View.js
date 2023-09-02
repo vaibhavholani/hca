@@ -2,8 +2,9 @@ import React, { useState, useEffect } from "react";
 import Editor from "./Editor";
 import Home from "../home/Home";
 import "./View.css";
-import { loadOptions, loadIndividuals } from "./api_calls.js";
+import { loadOptions, loadIndividuals } from "../../api_calls/loadData.js";
 import { SelectTableFilter, SelectInstanceFilter } from "./Filter";
+import { viewOptions } from "./options.js";
 import Notification from "../Custom/Notification";
 
 export default function View() {
@@ -76,6 +77,7 @@ export default function View() {
               supplierNames={supplierNames}
               partyNames={partyNames}
               handleTableSelectionClick={handleTableSelectionClick}
+              viewOptions={viewOptions}
             />
             {tableData.length > 0 && (
               <SelectInstanceFilter

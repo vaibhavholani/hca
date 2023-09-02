@@ -5,7 +5,7 @@ import Home from "../home/Home"
 import {useParams, useHistory} from 'react-router-dom'
 import {Button, ButtonGroup} from '@material-ui/core'
 import {base} from '../../proxy_url'
-import { ReportGenerator } from '../Reports/ReportGenerator';
+import { downloadFrontendReport } from '../Reports/ReportGenerator.mjs';
 
 const loadOptions = (mode)=> {
     
@@ -69,7 +69,7 @@ export default function Multiple_Selector() {
                 return response.json()
             }).then(json => {
                 console.log(json)
-                ReportGenerator(json)
+                downloadFrontendReport(json)
             })
             .catch(err => console.error(err));
             }

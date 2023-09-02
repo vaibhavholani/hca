@@ -11,7 +11,7 @@ import { autoTable } from "jspdf-autotable";
 //followed by the data rows and then the remaining special rows
 
 // helper function to format index page subheading
-function formatTitle(title) {
+export function formatTitle(title) {
   if (title.length === 44) {
     return title;
   } else if (title.length < 44) {
@@ -24,7 +24,7 @@ function formatTitle(title) {
 }
 
 // helper function to generate differnt colors for certain columns
-function filterAndGenerateFillColors(data, keywords, fillColor) {
+export function filterAndGenerateFillColors(data, keywords, fillColor) {
   const filteredData = data
     .map((entry, index) => ({ entry, index }))
     .filter(({ entry }) => {
@@ -44,7 +44,7 @@ function filterAndGenerateFillColors(data, keywords, fillColor) {
 }
 
 // Function to get the current date and time in a formatted string
-function getFormattedDateTime() {
+export function getFormattedDateTime() {
   const date = new Date();
   const options = {
     year: "numeric",
@@ -57,7 +57,7 @@ function getFormattedDateTime() {
 }
 
 // function to find max possible column headers
-function extractMaxKeysArr(dataRows) {
+export function extractMaxKeysArr(dataRows) {
   let maxKeys = 0;
   let maxKeysArr = [];
 
@@ -76,7 +76,7 @@ function extractMaxKeysArr(dataRows) {
 }
 
 // function to generate body rows for the table give a json of dataRows
-function generateBodyRows(dataRows, maxKeysArr) {
+export function generateBodyRows(dataRows, maxKeysArr) {
   const bodyRows = [];
 
   for (let k = 0; k < dataRows.length; k++) {
@@ -95,22 +95,14 @@ function generateBodyRows(dataRows, maxKeysArr) {
   return bodyRows;
 }
 
-export function ReportGenerator(reportData) {
+
+export function ReportGenerator(reportData, globalDefaults={}) {
   // Keep track of y coordinate to dynamically append elements to document | initialized by 22 for first page
   let yCoord = 12;
 
   // Create an array to store the page numbers for each heading and subheading
   const headingPageNumbers = [];
   const subheadingPageNumbers = [];
-
-  jsPDF.autoTableSetDefaults({
-    headStyles: {
-      fontStyle: "bold",
-      textColor: "black",
-      fillColor: [255, 255, 255],
-      lineWidth: 0.1,
-    },
-  });
 
   // Creating document
   const doc = new jsPDF();
@@ -488,5 +480,22 @@ export function ReportGenerator(reportData) {
   }
 
   // Save or display the newDoc with the reordered pages
+  return doc;
+}
+
+export function downloadFrontendReport(reportData) {
+  
+  jsPDF.autoTableSetDefaults({
+    headStyles: {
+      fontStyle: "bold",
+      textColor: "black",
+      fillColor: [255, 255, 255],
+      lineWidth: 0.1,
+    },
+
+  });
+
+  const doc = ReportGenerator(reportData);
+
   doc.save(`${reportData.title}.pdf`);
 }
