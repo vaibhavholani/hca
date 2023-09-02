@@ -15,8 +15,6 @@ const setKeyBinds = () => {
   keybind_form("Enter", "forward", elements);
   // keybind_form("ArrowDown", "forward", elements)
   // keybind_form("ArrowUp", 'backward', elements)
-
-  //
 };
 
 const OrderFormEntry = () => {

@@ -133,6 +133,8 @@ export default function DataEntry() {
             setNewRow={setNewRow}
             newItem={newItem}
             setNewItem={setNewItem}
+
+            setStatus={setStatus}
           />
         )}
       </div>

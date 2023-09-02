@@ -1,7 +1,11 @@
 import React, { useState, useEffect } from "react";
 import AutoComplete from "@material-ui/lab/Autocomplete";
 import TextInput from "../Custom/TextInput";
-import { getDate } from "../Date/Report_Date";
+import {
+  setKeyBindsForInputElements,
+  focusElementById,
+  focusFirstInputElement
+} from "../../hooks/keybind.js";
 
 export function SelectTableFilter({
   selectedTable,
@@ -10,7 +14,7 @@ export function SelectTableFilter({
   supplierNames,
   partyNames,
   handleTableSelectionClick,
-  viewOptions
+  viewOptions,
 }) {
   const [selectedSupplier, setSelectedSupplier] = useState(null);
   const [selectedParty, setSelectedParty] = useState(null);
@@ -21,31 +25,44 @@ export function SelectTableFilter({
   };
 
   useEffect(() => {
+    focusFirstInputElement();
     reset();
   }, [selectedTable]);
 
   return (
     <>
-     {viewOptions.length > 1 && 
-      <AutoComplete
-        id={"select_entity"}
-        className="autocomplete"
-        options={viewOptions}
-        style={{ width: 300 }}
-        getOptionLabel={(options) => options.value}
-        onChange={(event, value) => {
-          if (value === null) {
-            setSelectedTable({});
-          } else {
-            setSelectedTable(value);
-            setSelectedTableFilters({ table_name: value.table });
-          }
-        }}
-        autoHighlight
-        renderInput={(params) => (
-          <TextInput label={`Select Entity`} props={params} />
-        )}
-      />}
+      {viewOptions.length > 1 && (
+        <AutoComplete
+          id={"select_entity"}
+          className="autocomplete"
+          options={viewOptions}
+          style={{ width: 300 }}
+          getOptionLabel={(options) => options.value}
+          onChange={(event, value) => {
+            if (value === null) {
+              setSelectedTable({});
+            } else {
+              setSelectedTable(value);
+              setSelectedTableFilters({ table_name: value.table });
+            }
+          }}
+          autoHighlight
+          renderInput={(params) => (
+            <TextInput label={`Select Entity`} props={params} />
+          )}
+          onKeyDown={(e) => {
+            if (e.key === "Enter") {
+              e.preventDefault();
+              if (selectedTable.supplier_party_filter) {
+                document.getElementById("select_supplier").focus();
+              } else {
+                handleTableSelectionClick();
+              }
+            }
+          }}
+        />
+      )}
+
       {selectedTable.supplier_party_filter ? (
         <>
           <AutoComplete
@@ -53,7 +70,7 @@ export function SelectTableFilter({
             className="autocomplete"
             value={selectedSupplier || {}}
             options={supplierNames}
-            autoHighlight 
+            autoHighlight
             style={{ width: 300 }}
             getOptionLabel={(options) => (options.name ? options.name : "")}
             onChange={(event, value) => {
@@ -68,6 +85,12 @@ export function SelectTableFilter({
                 }
               });
             }}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") {
+                e.preventDefault();
+                document.getElementById("select_party").focus();
+              }
+            }}
             renderInput={(params) => (
               <TextInput label={`Select Supplier`} props={params} />
             )}
@@ -78,7 +101,7 @@ export function SelectTableFilter({
             value={selectedParty || {}}
             options={partyNames}
             style={{ width: 300 }}
-            autoHighlight 
+            autoHighlight
             getOptionLabel={(options) => (options.name ? options.name : "")}
             onChange={(event, value) => {
               setSelectedParty(value);
@@ -91,6 +114,12 @@ export function SelectTableFilter({
                   return { ...old, party_id: value.id };
                 }
               });
+            }}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") {
+                e.preventDefault();
+                handleTableSelectionClick();
+              }
             }}
             renderInput={(params) => (
               <TextInput label={`Select Party`} props={params} />
@@ -121,37 +150,38 @@ export function SelectInstanceFilter({
     const [year, month, day] = dateStr.split("-");
     return `${day}/${month}/${year}`;
   };
-  
+
   const convertToDisplayFormat = (str) => {
     if (str === "register_date") {
-      return "Date"
+      return "Date";
     }
     return str
-    .split("_")
-    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-    .join(" ");
+      .split("_")
+      .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+      .join(" ");
   };
 
   const generateLabel = (option) => {
-
     if (option.name) return option.name;
 
     let label = "";
     for (const key in option) {
       if (key.endsWith("_number")) {
         // Convert the key to the desired format
-        label = `${key.split("_")[0].charAt(0).toUpperCase() + key.split("_")[0].slice(1)} No.: ${option[key]}`;
+        label = `${
+          key.split("_")[0].charAt(0).toUpperCase() + key.split("_")[0].slice(1)
+        } No.: ${option[key]}`;
       }
     }
     // Check if register_date is available and append it
     if (option.register_date) {
       label += ` | Date: ${convertDate(option.register_date)}`;
     }
-  
+
     // Return the generated label or a default label
     return label || "No Selection";
   };
-  
+
   const reset = () => {
     setEntity({});
   };
@@ -167,6 +197,7 @@ export function SelectInstanceFilter({
       });
       setFilters(newFilters);
     }
+    setKeyBindsForInputElements("select-instance-filters");
   }, [selectedTable]);
 
   useEffect(() => {
@@ -190,12 +221,17 @@ export function SelectInstanceFilter({
     setFilteredData(newData);
   }, [filters, tableData]);
 
+  useEffect(() => {
+    focusElementById("instance-filter-1");
+  }, []);
+
   return (
-    <div>
+    <div className={"select-instance-filters"}>
       {selectedTable &&
         selectedTable.filters &&
-        selectedTable.filters.map((filter) => (
+        selectedTable.filters.map((filter, index) => (
           <TextInput
+            id={`instance-filter-${index + 1}`} // Adding the id property here
             label={convertToDisplayFormat(filter.name)}
             type={filter.type}
             value={filters[filter.name]}
@@ -210,16 +246,21 @@ export function SelectInstanceFilter({
           return generateLabel(option);
         }}
         value={entity}
-        autoHighlight 
+        autoHighlight
         onChange={(event, value) => {
           if (value === null) {
             setEntity({});
           } else {
-
             setEntity(value);
           }
         }}
         style={{ width: 300 }}
+        onKeyDown={(e) => {
+          if (e.key === "Enter") {
+            e.preventDefault();
+            handleEntitySelectionClick();
+          }
+        }}
         renderInput={(params) => (
           <TextInput label={`Select Instance`} props={params} />
         )}

@@ -18,6 +18,10 @@ import DeleteIcon from "@material-ui/icons/Delete";
 import Autocomplete from "@material-ui/lab/Autocomplete";
 import TextInput from "../Custom/TextInput";
 import "./DataEntry.css";
+import {
+  setKeyBindsForInputElements,
+  focusElementById,
+} from "../../hooks/keybind.js";
 
 export default function ItemEntry({
   entity,
@@ -28,20 +32,27 @@ export default function ItemEntry({
   addItemEntryBackend,
   deleteItemEntry,
   rows,
-  setRows,
   newRow,
   setNewRow,
   newItem,
   setNewItem,
-  itemEntryTemplate,
-  itemTemplate,
+  setStatus
 }) {
+
+  
   const updateNewRow = (field, value) => {
     setNewRow((prevState) => ({ ...prevState, [field]: value }));
   };
 
   const addNewRow = () => {
-    if (newRow.item.id && newRow.quantity && newRow.rate) {
+    const quantityInt = parseFloat(newRow.quantity);
+    const rateInt = parseFloat(newRow.rate);
+  
+    if (
+      newRow.item.id &&
+      Number.isInteger(quantityInt) &&
+      Number.isInteger(rateInt)
+    ) {
       const newEntry = {
         register_entry_id: entity.id,
         item_id: newRow.item.id,
@@ -49,16 +60,16 @@ export default function ItemEntry({
         rate: newRow.rate,
       };
       addItemEntryBackend(newEntry);
-      setRows([...rows, newEntry]);
+      focusElementById("item_selector");
+    } else {
+      setStatus({"status": "error", "message": "Quantity and Rate must be integers"});
     }
   };
 
+
+
   const deleteRow = (index) => {
-    // fetching delete row
     deleteItemEntry(rows[index]);
-    // const newRows = [...rows];
-    // newRows.splice(index, 1);
-    // setRows(newRows);
   };
 
   const handleNewItemChange = (field, value) => {
@@ -72,8 +83,15 @@ export default function ItemEntry({
   };
 
   useEffect(() => {
-    console.log(rows);
-  }, [rows]);
+    if (itemDialogBoxOpen) {
+      focusElementById("name");
+    }
+  }, [itemDialogBoxOpen]);
+
+  useEffect(() => {
+    setKeyBindsForInputElements();
+    focusElementById("item_selector");
+  }, []);
 
   return (
     <div class="form-box">
@@ -87,10 +105,17 @@ export default function ItemEntry({
           <Autocomplete
             style={{ width: 300 }}
             autoHighlight
+            id="item_selector"
             options={items}
             getOptionLabel={(option) => option.name || ""}
             value={newRow.item}
             onChange={(event, newValue) => updateNewRow("item", newValue)} // store the entire item object
+            onKeyDown={(e) => {
+              if (e.key === "Enter") {
+                e.preventDefault()
+                focusElementById("quantity");
+              }
+            }}
             renderInput={(params) => (
               <TextInput label={`Item`} props={params} />
             )}
@@ -103,6 +128,7 @@ export default function ItemEntry({
 
         <TextInput
           label="Quantity"
+          id="quantity"
           value={newRow.quantity}
           onChange={(e) => updateNewRow("quantity", e.target.value)}
         />
@@ -110,6 +136,14 @@ export default function ItemEntry({
           label="Rate"
           value={newRow.rate}
           onChange={(e) => updateNewRow("rate", e.target.value)}
+          onKeyDown={
+            (e) => {
+              if (e.key === "Enter") {
+                e.preventDefault()
+                addNewRow();
+              }
+            }
+          }
         />
         <button onClick={addNewRow} class="button">
           Add to Table
@@ -160,13 +194,31 @@ export default function ItemEntry({
         <DialogContent>
           <TextInput
             label="Name"
+            id="name"
             value={newItem.name}
             onChange={(e) => handleNewItemChange("name", e.target.value)}
+            onKeyDown={
+              (e) => {
+                if (e.key === "Enter") {
+                  e.preventDefault()
+                  focusElementById("color");
+                }
+              }
+            }
           />
           <TextInput
             label="Color"
+            id="color"
             value={newItem.color}
             onChange={(e) => handleNewItemChange("color", e.target.value)}
+            onKeyDown={
+              (e) => {
+                if (e.key === "Enter") {
+                  e.preventDefault()
+                  addItem();
+                }
+              }
+            }
           />
         </DialogContent>
         <DialogActions>
