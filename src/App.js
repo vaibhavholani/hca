@@ -12,12 +12,11 @@ import Memo_entry from './windows/memo_entry/Memo_entry'
 import OrderFormEntry from './windows/OrderForm/OrderForm';
 import View from './windows/View/View'
 import Login from './windows/Login/Login'
+import DataEntry from './windows/DataEntry/DataEntry';
 import {base} from './proxy_url'
 
 // creating a context
 export const LoginContext = React.createContext()
-
-
 
 // change it back to hash router
 function App() {
@@ -37,6 +36,7 @@ function App() {
         <Route path="/selector/:mode/:type/:supplier"  component={Selector}/>
         <Route path="/register_entry/:supplier" component={Register_entry}/>
         <Route path="/order_form" component={OrderFormEntry}/>
+        <Route path="/data_entry" component={DataEntry}/>
         <Route path="/view" component={View}/>
         <Route path="/" exact component={Dashboard}/>
       </Switch>
