@@ -3,13 +3,13 @@ import { useForm } from "react-hook-form";
 import { makeStyles } from "@material-ui/core/styles";
 import Autocomplete from "@material-ui/lab/Autocomplete";
 import { useParams, useHistory } from "react-router-dom";
-import Home from "../home/Home";
+import Home from "../home/Home.js";
 import { validate } from "./validation.js";
-import TextInput from "../Custom/TextInput";
-import { keybind_form } from "../../hooks/keybind";
-import { validate_int, validate_required } from "../Custom/validate";
-import Notification from "../Custom/Notification";
-import { base } from "../../proxy_url";
+import TextInput from "../Custom/TextInput.js";
+import { keybind_form } from "../../hooks/keybind.js";
+import { validate_int, validate_required } from "../Custom/validate.js";
+import Notification from "../Custom/Notification.js";
+import { base } from "../../proxy_url.js";
 
 
 const useStyles = makeStyles({
@@ -38,7 +38,7 @@ export const getDate = () => {
   return date;
 };
 
-export default function Register_entry() {
+export default function RegisterEntry() {
   var { supplier } = useParams();
   supplier = JSON.parse(supplier);
   const { register, handleSubmit, reset } = useForm();

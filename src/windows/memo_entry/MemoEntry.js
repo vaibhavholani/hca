@@ -1,6 +1,6 @@
 import React, {useState, useEffect, useRef, memo} from 'react'
 import './Memo_entry.css'
-import Home from '../home/Home'
+import Home from '../home/Home.js'
 import {useForm} from 'react-hook-form'
 import {useParams} from 'react-router-dom'
 import Autocomplete from '@material-ui/lab/Autocomplete';
@@ -9,18 +9,18 @@ import Chip from '@material-ui/core/Chip'
 import AddIcon from '@material-ui/icons/AddCircle';
 import IconButton from '@material-ui/core/IconButton';
 import Switch from '@material-ui/core/Switch'
-import TextInput from '../Custom/TextInput'
+import TextInput from '../Custom/TextInput.js'
 import AccountBalanceIcon from '@material-ui/icons/AccountBalance';
 import CreditCardIcon from '@material-ui/icons/CreditCard'
-import {validate} from './validation'
+import {validate} from './validation.js'
 import {withStyles} from '@material-ui/core/styles'
 import MuiAlert from '@material-ui/lab/Alert'
 import Snackbar from '@material-ui/core/Snackbar'
-import {base} from '../../proxy_url'
-import Notification from '../Custom/Notification'
+import {base} from '../../proxy_url.js'
+import Notification from '../Custom/Notification.js'
 
 
-import {update_bill_color, getBillNumbers, getBank, getCredit, getDate} from './helpers'
+import {update_bill_color, getBillNumbers, getBank, getCredit, getDate} from './helpers.js'
 import { Checkbox, List, ListItem, ListItemIcon, ListItemText } from '@material-ui/core';
 import { CheckBoxOutlineBlank, CheckBox } from '@material-ui/icons';
 
@@ -56,7 +56,7 @@ const setAmount = (bills, grAmount, partAmount=0, deduction=0) => {
     return total
 }
 
-export default function Memo_entry() {
+export default function MemoEntry() {
     
     const [stateTracker, setStateTracker] = useState(0);
     const {register, handleSubmit, formState: {errors}, clearErrors, setError, reset} = useForm();
