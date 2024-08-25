@@ -53,7 +53,7 @@ export default function Selector() {
         }
 
         if (type === "register_entry")
-        {history.push(`/${type}/${JSON.stringify(selected)}`)}
+        {history.push(`/${type}/deselect/${JSON.stringify(selected)}`)}
         else {
             if (mode === "Supplier") {
                 history.push(`/selector/Party/${type}/${JSON.stringify(selected)}`)

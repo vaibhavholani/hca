@@ -11,7 +11,6 @@ import { validate_int, validate_required } from "../Custom/validate.js";
 import Notification from "../Custom/Notification.js";
 import { base } from "../../proxy_url.js";
 
-
 const useStyles = makeStyles({
   root: {
     display: "inline",
@@ -19,17 +18,11 @@ const useStyles = makeStyles({
 });
 
 const setKeyBinds = () => {
-  // Setting enter keybinds
   var elements = document.getElementsByTagName("input");
   keybind_form("Enter", "forward", elements);
-  // keybind_form("ArrowDown", "forward", elements)
-  // keybind_form("ArrowUp", 'backward', elements)
-
-  //
 };
 
 export const getDate = () => {
-  // Setting date
   const dt = new Date();
   const year = dt.getFullYear();
   const month = (dt.getMonth() + 1).toString().padStart(2, "0");
@@ -39,96 +32,94 @@ export const getDate = () => {
 };
 
 export default function RegisterEntry() {
-  var { supplier } = useParams();
-  supplier = JSON.parse(supplier);
+
+  const { type, supplier: supplierFromParams } = useParams();
+  const supplierParsed = supplierFromParams ? JSON.parse(supplierFromParams) : null;
+  
+  // Determine `selectSupplier` based on `type`
+  const selectSupplier = type === "select"; 
+
   const { register, handleSubmit, reset } = useForm();
+  const [suppliers, setSuppliers] = useState([]);
+  const [selectedSupplier, setSelectedSupplier] = useState(selectSupplier ? null : supplierParsed);
   const [parties, setParties] = useState([]);
   const [party, setParty] = useState([]);
   const [error, setError] = useState(validate);
-  const [submit, setSubmit] = useState(true);
   const [status, setStatus] = useState({
     status: "okay",
     message: "Register Entry Added",
   });
   const [notificationOpen, setNotificationOpen] = useState(false);
-  const [initialRender, setInitialRender] = useState(true); // Add initialRender flag
+  const [initialRender, setInitialRender] = useState(true);
   const date = getDate();
 
   useEffect(() => {
-    // Setting key binds
     setKeyBinds();
     document.getElementById("bill_number").focus();
+
+    if (selectSupplier) {
+      fetch(`${base}/supplier_names_and_ids`)
+        .then((response) => response.json())
+        .then((data) => setSuppliers(data))
+        .catch((err) => console.log("Error Reading data " + err));
+    }
+
     fetch(`${base}/party_names_and_ids`)
-      .then((response) => {
-        return response.json();
-      })
-      .then((data) => {
-        setParties(data);
-      })
-      .catch((err) => {
-        console.log("Error Reading data " + err);
-      });
-  }, []);
+      .then((response) => response.json())
+      .then((data) => setParties(data))
+      .catch((err) => console.log("Error Reading data " + err));
+  }, [selectSupplier]);
 
   const OnSubmit = (data) => {
     setError(validate);
-    var { err_status, update } = validate_required(data);
     const { bill_number, amount } = data;
-    if (!err_status) {
-      var { err_status, update } = validate_int({ bill_number, amount });
-    }
-    if (err_status) {
-      setError((old) => {
-        return { ...old, ...update };
-      });
-    }
+    let { err_status, update } = validate_required(data);
 
     if (!err_status) {
+      ({ err_status, update } = validate_int({ bill_number, amount }));
+    }
+
+    if (err_status) {
+      setError((old) => ({ ...old, ...update }));
+    } else {
       const requestData = {
-        bill_number: data["bill_number"],
-        amount: data["amount"],
-        supplier_id: supplier["id"],
-        party_id: party["id"],
-        register_date: data["register_date"],
+        bill_number: data.bill_number,
+        amount: data.amount,
+        supplier_id: selectedSupplier.id,
+        party_id: party.id,
+        register_date: data.register_date,
       };
 
       fetch(`${base}/add/register_entry`, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify(requestData),
       })
-        .then((response) => {
-          return response.json();
-        })
-        .then((data) => {
-          setStatus(data)
-        })
-        .catch((err) => {
-          // Do something for an error here
-          console.log("Error Reading data " + err);
-        });
+        .then((response) => response.json())
+        .then((data) => setStatus(data))
+        .catch((err) => console.log("Error Reading data " + err));
     }
   };
 
-  const resetRegisterEntry = () => { 
+  const resetRegisterEntry = () => {
     reset();
     document.getElementById("bill_number").focus();
-  }
+  };
 
   const classes = useStyles();
   return (
     <>
       <Home />
-      <div class="entry_content">
-        <div class="form-box">
-          <h3 style={{ display: "inline" }}>
-            Supplier Name: {supplier["name"]}
-          </h3>
+      <div className="entry_content">
+        <div className="form-box">
+          {selectSupplier ? (
+            <h3 style={{ display: "inline" }}>Register Entry</h3>
+          ) : (
+            <h3 style={{ display: "inline" }}>Supplier Name: {selectedSupplier?.name}</h3>
+          )}
         </div>
         <form onSubmit={handleSubmit(OnSubmit)}>
-          <div class="form-box">
+          <div className="form-box">
             <div>
               <TextInput
                 label="Bill Number"
@@ -149,10 +140,34 @@ export default function RegisterEntry() {
                 props={{ inputProps: { ...register("register_date") } }}
               />
             </div>
+            {selectSupplier && 
+              (
+                <Autocomplete
+                  options={suppliers}
+                  getOptionLabel={(option) => option.name}
+                  onChange={(event, value) => setSelectedSupplier(value)}
+                  autoHighlight
+                  onKeyPress={(e) => {
+                    if (e.key === "Enter") {
+                      document.getElementById("parties").focus();
+                      e.preventDefault();
+                      // write your functionality here
+                    }
+                  }}
+                  renderInput={(params) => (
+                    <TextInput
+                      label="Select Supplier"
+                      props={params}
+                      errorState={error.supplier?.error}
+                      errorText={error.supplier?.message}
+                    />
+                  )}
+                />
+              )}
             <div>
               <Autocomplete
-                class="bind_down"
                 options={parties}
+                id="parties"
                 getOptionLabel={(parties) => parties.name}
                 onChange={(event, value) => setParty(value)}
                 autoHighlight
@@ -184,11 +199,10 @@ export default function RegisterEntry() {
                 props={{ inputProps: { ...register("amount") } }}
               />
             </div>
-            <input type="submit" class="button" />
+            <input type="submit" className="button" />
           </div>
         </form>
       </div>
-
       <Notification
         status={status}
         setError={setError}

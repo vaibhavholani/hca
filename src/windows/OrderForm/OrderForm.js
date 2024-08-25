@@ -6,7 +6,7 @@ import { validate as orderFormValidation } from "./orderFormValidation.js";
 import TextInput from "../Custom/TextInput";
 import Notification from "../Custom/Notification";
 import { keybind_form } from "../../hooks/keybind";
-import { getDate } from "../register_entry/Register_entry";
+import { getDate } from "../register_entry/RegisterEntry";
 import { base } from "../../proxy_url";
 
 const setKeyBinds = () => {

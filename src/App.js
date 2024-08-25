@@ -6,7 +6,7 @@ import Dashboard from './windows/Dashboard/Dashboard';
 import New from './windows/New/New'
 import Report_Date from './windows/Date/Report_Date'
 import Selector from './windows/Selector/Selector'
-import RegisterEntry from './windows/register_entry/Register_entry'
+import RegisterEntry from './windows/register_entry/RegisterEntry'
 import Multiple_Selector from './windows/Multiple_Selector/Multiple_Selector'
 import MemoEntry from './windows/memo_entry/MemoEntry'
 import OrderFormEntry from './windows/OrderForm/OrderForm';
@@ -29,12 +29,12 @@ function App() {
     <Router>
         {token && token != "" && token != undefined? 
       <Switch>
-        <Route path="/memo_entry/:party/:supplier" component={Memo_entry} />
+        <Route path="/memo_entry/:party/:supplier" component={MemoEntry} />
         <Route path="/new/:entity" component={New}/>
         <Route path="/multiple_selector/:report/:mode/:from/:to/:suppliers" component={Multiple_Selector} />
         <Route path="/date_select/:report" component={Report_Date} />
         <Route path="/selector/:mode/:type/:supplier"  component={Selector}/>
-        <Route path="/register_entry/:supplier" component={RegisterEntry}/>
+        <Route path="/register_entry/:type/:supplier" component={RegisterEntry}/>
         <Route path="/order_form" component={OrderFormEntry}/>
         <Route path="/data_entry" component={DataEntry}/>
         <Route path="/view" component={View}/>
