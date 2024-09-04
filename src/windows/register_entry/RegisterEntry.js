@@ -34,10 +34,10 @@ export const getDate = () => {
 export default function RegisterEntry() {
 
   const { type, supplier: supplierFromParams } = useParams();
-  const supplierParsed = supplierFromParams ? JSON.parse(supplierFromParams) : null;
   
   // Determine `selectSupplier` based on `type`
   const selectSupplier = type === "select"; 
+  const supplierParsed = selectSupplier ? null : JSON.parse(supplierFromParams);
 
   const { register, handleSubmit, reset } = useForm();
   const [suppliers, setSuppliers] = useState([]);

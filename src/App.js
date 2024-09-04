@@ -34,7 +34,7 @@ function App() {
         <Route path="/multiple_selector/:report/:mode/:from/:to/:suppliers" component={Multiple_Selector} />
         <Route path="/date_select/:report" component={Report_Date} />
         <Route path="/selector/:mode/:type/:supplier"  component={Selector}/>
-        <Route path="/register_entry/:type/:supplier" component={RegisterEntry}/>
+        <Route path="/register_entry/:type/:supplier?" component={RegisterEntry}/>
         <Route path="/order_form" component={OrderFormEntry}/>
         <Route path="/data_entry" component={DataEntry}/>
         <Route path="/view" component={View}/>
