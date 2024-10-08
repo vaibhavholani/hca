@@ -5,3 +5,49 @@
 .cool {
     display: "none";
 }
+
+.register-entry-wrapper{
+    display: flex;
+    justify-content: center;
+    /*align-items: center;*/
+}
+.form-wrapper{
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: end;
+    width: 100%;
+    /*border-right: 1px solid #8709e3;*/
+}
+.box-title{
+    padding: 60px;
+    background: white;
+}
+.upload-box{
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    height: calc(100vh - 80px);
+}
+.upload-box.align-center{
+    align-items: center;
+}
+.general-btn{
+    cursor: pointer;
+    background: white;
+    border: 1px solid #8709e3;
+    color: #8709e3;
+    padding: 8px;
+}
+.input-hide{
+    display: none;
+}
+.next-photo-btn{
+    display: flex;
+    justify-content: end;
+    align-items: center;
+}
+.img-uploaded{
+    display: flex;
+    flex-direction: column;
+}
