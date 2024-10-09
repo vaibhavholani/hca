@@ -32,19 +32,33 @@ export default function Multiple_Selector() {
     const history = useHistory();
     const [val, setVal] = useState([])
 
+    const [supplierAll, setSupplierAll] = useState(false)
+    const [partyAll, setPartyAll] = useState(false)
+
     useEffect(()=>{
         const data = loadOptions(mode)
         data.then(val => setOptions(val))
         document.getElementById("selector").focus();
     }, [mode])
 
+    const updateAllSelectionMode = (status) => {
+        if (mode === "suppliers") {
+            setSupplierAll(status)
+        }
+        else {
+            setPartyAll(status)
+        }
+    }
+
     const addAll = () => {
         setSelected([...options])
         setVal([...options])
+        updateAllSelectionMode(true)
     }
 
     const clearAll = () => {
-        setVal([])
+        setVal([]);
+        updateAllSelectionMode(false);
     }
 
     const submit = () => {
@@ -60,15 +74,20 @@ export default function Multiple_Selector() {
           }
             
             else {
+            
+            let all = false;
+            if (supplierAll && partyAll) {
+                all = true;
+            }
+
             const requestOptions = {
                 method: 'POST', 
                 headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({suppliers: suppliers, parties: JSON.stringify(selected), report: report, from: from, to: to})
+                body: JSON.stringify({suppliers: suppliers, parties: JSON.stringify(selected), report: report, from: from, to: to, all:all})
             }
             fetch(base + '/create_report', requestOptions).then(response => {
                 return response.json()
             }).then(json => {
-                console.log(json)
                 downloadFrontendReport(json)
             })
             .catch(err => console.error(err));
@@ -92,7 +111,9 @@ export default function Multiple_Selector() {
                         style={{width: 300, margin: 10}}
                         value = {val}
                         getOptionLabel = {(options) => options.name}
-                        onChange={(event, value) => {setSelected(value); setVal(value)}}
+                        onChange={(event, value) => {
+                            setSelected(value); 
+                            setVal(value)}}
                         autoHighlight 
                         multiple
                         onKeyPress={(e) => {
