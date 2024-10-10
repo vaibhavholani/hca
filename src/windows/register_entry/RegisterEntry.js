@@ -32,6 +32,25 @@ export const getDate = () => {
   return date;
 };
 
+const SAMPLE_DATA = {
+  bill_number: 1,
+  amount: 10,
+  party: {id: 1, name: 'RED'},
+  register_date: '2024-12-1',
+  supplier: {id: 1, name: 'JOHN'}
+};
+
+const SAMPLE_SUPPLIER = [
+  {id: 0, name: 'RAJESH'},
+  {id: 1, name: 'JOHN'},
+  {id: 2, name: 'KUMAR'}
+]
+const SAMPLE_PARTIES = [
+  {id: 0, name: 'BLUE'},
+  {id: 1, name: 'RED'},
+  {id: 2, name: 'ORANGE'}
+]
+
 export default function RegisterEntry() {
   const uploadInputRef = useRef();
 
@@ -41,11 +60,12 @@ export default function RegisterEntry() {
   const selectSupplier = type === "select";
   const supplierParsed = selectSupplier ? null : JSON.parse(supplierFromParams);
 
-  const { register, handleSubmit, reset } = useForm();
-  const [suppliers, setSuppliers] = useState([]);
+  const { register, handleSubmit, setValue, getValues, watch, reset } = useForm();
+  const [suppliers, setSuppliers] = useState(SAMPLE_SUPPLIER);
   const [selectedSupplier, setSelectedSupplier] = useState(selectSupplier ? null : supplierParsed);
-  const [parties, setParties] = useState([]);
+  const [parties, setParties] = useState(SAMPLE_PARTIES);
   const [party, setParty] = useState([]);
+  const [amount, setAmount] = useState();
   const [error, setError] = useState(validate);
   const [status, setStatus] = useState({
     status: "okay",
@@ -54,17 +74,36 @@ export default function RegisterEntry() {
   const [notificationOpen, setNotificationOpen] = useState(false);
   const [initialRender, setInitialRender] = useState(true);
   const date = getDate();
-  const [imageSrc, setImageSrc] = useState(null);
+  const [uploadedFiles, setUploadedFiles] = useState([]);
+  const [selectedImgIndex, setSelectedImgIndex] = useState(0);
 
   // Function to handle file input change
   const handleFileChange = (event) => {
-    const file = event.target.files[0];
-    if (file && file.type.startsWith('image/')) {
-      const imageURL = URL.createObjectURL(file);
-      setImageSrc(imageURL);
-      // TODO: after uploading the image you can send it to backend and fetch the data to load into the form
-    }
+    const files = Array.prototype.slice.call(event.target.files);
+    const filesArr = []
+    files.forEach((file, index) => {
+      if (file && file.type.startsWith('image/')) {
+        const imageURL = URL.createObjectURL(file);
+        // TODO: after uploading the image you can send it to backend and fetch the data to load into the form
+        filesArr.push({
+          imageURL,
+          data: {
+            bill_number: SAMPLE_DATA.bill_number + index,
+            amount: SAMPLE_DATA.amount + index,
+            supplier: SAMPLE_DATA.supplier,
+            register_date: SAMPLE_DATA.register_date + (index+1).toString(),
+            party: SAMPLE_DATA.party
+          }
+        });
+      }
+    })
+    setUploadedFiles(filesArr);
+
   };
+
+  const changeAmount = (e) => {
+    setAmount(e.target.value);
+  }
 
   useEffect(() => {
     setKeyBinds();
@@ -82,6 +121,17 @@ export default function RegisterEntry() {
       .then((data) => setParties(data))
       .catch((err) => console.log("Error Reading data " + err));
   }, [selectSupplier]);
+
+  useEffect(() => {
+    if(uploadedFiles.length > 0){
+      const { bill_number, amount, party, supplier, register_date } = uploadedFiles[selectedImgIndex].data;
+      setValue('amount', amount);
+      setValue('bill_number', bill_number);
+      setValue('party', party.name)
+      setValue('supplier', supplier.name);
+      setValue('register_date', register_date);
+    }
+  }, [uploadedFiles, selectedImgIndex]);
 
   const OnSubmit = (data) => {
     setError(validate);
@@ -119,126 +169,144 @@ export default function RegisterEntry() {
     document.getElementById("bill_number").focus();
   };
 
+  const handleNextPhoto = () => {
+    if(uploadedFiles.length === 1) return;
+    let index = selectedImgIndex;
+    if(index === uploadedFiles.length - 1){
+      setSelectedImgIndex(0)
+    } else setSelectedImgIndex(index + 1);
+  }
+
   const classes = useStyles();
   return (
     <>
       <Home />
       <div className="register-entry-wrapper">
         <div className="form-wrapper">
-          <div className="box-title" style={{marginRight: '120px'}}>
-            {selectSupplier ? (
-                <h3 style={{display: "inline"}}>Register Entry</h3>
-            ) : (
-                <h3 style={{display: "inline"}}>Supplier Name: {selectedSupplier?.name}</h3>
-            )}
-          </div>
-          <div className="form-box">
-            <form onSubmit={handleSubmit(OnSubmit)}>
-              <div className="form-box">
-                <div>
-                  <TextInput
-                      label="Bill Number"
-                      type="number"
-                      id="bill_number"
-                      errorText={error.bill_number.message}
-                      props={{inputProps: {...register("bill_number")}}}
-                      errorState={error.bill_number.error}
-                  />
-                </div>
-                <div>
-                  <TextInput
-                      label="Bill Date"
-                      type="date"
-                      defaultValue={date}
-                      errorState={false}
-                      errorText="Invalid Date"
-                      props={{inputProps: {...register("register_date")}}}
-                  />
-                </div>
-                {selectSupplier &&
-                    (
+          <div>
+            <div className="box-title" style={{margin: '0 auto', width: 'fit-content'}}>
+              {selectSupplier ? (
+                  <h3 style={{display: "inline"}}>Register Entry</h3>
+              ) : (
+                  <h3 style={{display: "inline"}}>Supplier Name: {selectedSupplier?.name}</h3>
+              )}
+            </div>
+            <div className="form-box">
+              <form onSubmit={handleSubmit(OnSubmit)}>
+                <div className="form-box">
+                  <div>
+                    <TextInput
+                        label="Bill Number"
+                        type="number"
+                        id="bill_number"
+                        errorText={error.bill_number.message}
+                        props={{inputProps: {...register("bill_number")}}}
+                        errorState={error.bill_number.error}
+                    />
+                  </div>
+                  <div>
+                    <TextInput
+                        label="Bill Date"
+                        type="date"
+                        defaultValue={date}
+                        errorState={false}
+                        errorText="Invalid Date"
+                        props={{inputProps: {...register("register_date")}}}
+                    />
+                  </div>
+                  {selectSupplier &&
+                      (
+                          <Autocomplete
+                              options={suppliers}
+                              getOptionLabel={(option) => option.name}
+                              onChange={(event, value) => setSelectedSupplier(value)}
+                              autoHighlight
+                              onKeyPress={(e) => {
+                                if (e.key === "Enter") {
+                                  document.getElementById("parties").focus();
+                                  e.preventDefault();
+                                  // write your functionality here
+                                }
+                              }}
+                              renderInput={(params) => (
+                                  <TextInput
+                                      label="Select Supplier"
+                                      props={params}
+                                      custom={register("supplier")}
+                                      errorState={error.supplier?.error}
+                                      errorText={error.supplier?.message}
+                                  />
+                              )}
+                          />
+                      )}
+                  <div>
+                    {selectSupplier && (
                         <Autocomplete
-                            options={suppliers}
-                            getOptionLabel={(option) => option.name}
-                            onChange={(event, value) => setSelectedSupplier(value)}
+                            options={parties}
+                            id="parties"
+                            getOptionLabel={(parties) => parties.name}
+                            onChange={(event, value) => setParty(value)}
                             autoHighlight
                             onKeyPress={(e) => {
                               if (e.key === "Enter") {
-                                document.getElementById("parties").focus();
+                                document.getElementById("amount").focus();
                                 e.preventDefault();
                                 // write your functionality here
                               }
                             }}
                             renderInput={(params) => (
                                 <TextInput
-                                    label="Select Supplier"
+                                    label="Party Name"
                                     props={params}
-                                    errorState={error.supplier?.error}
-                                    errorText={error.supplier?.message}
+                                    custom={register("party")}
+                                    errorState={error.party.error}
+                                    errorText={error.party.message}
                                 />
                             )}
                         />
                     )}
-                <div>
-                  <Autocomplete
-                      options={parties}
-                      id="parties"
-                      getOptionLabel={(parties) => parties.name}
-                      onChange={(event, value) => setParty(value)}
-                      autoHighlight
-                      onKeyPress={(e) => {
-                        if (e.key === "Enter") {
-                          document.getElementById("amount").focus();
-                          e.preventDefault();
-                          // write your functionality here
-                        }
-                      }}
-                      renderInput={(params) => (
-                          <TextInput
-                              label="Party Name"
-                              props={params}
-                              custom={register("party")}
-                              errorState={error.party.error}
-                              errorText={error.party.message}
-                          />
-                      )}
-                  />
+                  </div>
+                  <div>
+                    <TextInput
+                        value={amount}
+                        onChange={changeAmount}
+                        label="Amount"
+                        id="amount"
+                        type="number"
+                        errorState={error.amount.error}
+                        errorText={error.amount.message}
+                        props={{inputProps: {...register("amount")}}}
+                    />
+                  </div>
+                  <input type="submit" className="button"/>
                 </div>
-                <div>
-                  <TextInput
-                      label="Amount"
-                      id="amount"
-                      type="number"
-                      errorState={error.amount.error}
-                      errorText={error.amount.message}
-                      props={{inputProps: {...register("amount")}}}
-                  />
-                </div>
-                <input type="submit" className="button"/>
-              </div>
-            </form>
+              </form>
+            </div>
           </div>
         </div>
-        <div className={`upload-box ${imageSrc ? '' : 'align-center'}`}>
-          {!imageSrc && <button className="general-btn" onClick={() => uploadInputRef.current.click()}>
+        {selectSupplier && <div className="centered-line"></div>}
+        {selectSupplier && <div className={`upload-box ${uploadedFiles.length ? '' : 'align-center'}`}>
+          {uploadedFiles.length === 0 && <button className="general-btn" onClick={() => uploadInputRef.current.click()}>
             Upload Photos
           </button>}
-          <input className="input-hide" ref={uploadInputRef} type='file' onChange={handleFileChange} />
-          {imageSrc && <div className="img-uploaded">
+          <input className="input-hide" ref={uploadInputRef} type='file' multiple onChange={handleFileChange}/>
+          {uploadedFiles.length > 0 && <div className="img-uploaded">
             <div className="box-title" style={{margin: '0 auto'}}>
               <h3 style={{display: "inline"}}>Bill Photo</h3>
             </div>
+            <div className="image-count">
+              {`image ${selectedImgIndex + 1} of ${uploadedFiles.length}`}
+            </div>
             <div style={{margin: '15px 0'}}>
-              <img src={imageSrc} width="400" height="550"/>
+              <img src={uploadedFiles[selectedImgIndex].imageURL} width="601" height="710"/>
             </div>
             <div className="next-photo-btn">
-            <button className="general-btn" onClick={() => {
-              }}>
+              <button className="general-btn" onClick={handleNextPhoto}>
                 Next Photos
               </button>
             </div>
           </div>}
-        </div>
+        </div>}
       </div>
       <Notification
           status={status}

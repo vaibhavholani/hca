@@ -9,7 +9,12 @@
 .register-entry-wrapper{
     display: flex;
     justify-content: center;
-    /*align-items: center;*/
+    align-items: center;
+    gap: 30px;
+}
+.centered-line{
+    height: 680px;
+    border: 1px solid #948EE3
 }
 .form-wrapper{
     display: flex;
@@ -23,11 +28,17 @@
     padding: 60px;
     background: white;
 }
+.image-count{
+    display: flex;
+    justify-content: end;
+    align-items: center;
+    font-weight: 700;
+}
 .upload-box{
     width: 100%;
     display: flex;
     justify-content: center;
-    height: calc(100vh - 80px);
+    height: 800px;
 }
 .upload-box.align-center{
     align-items: center;
