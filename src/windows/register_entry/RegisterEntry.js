@@ -84,25 +84,37 @@ export default function RegisterEntry() {
 
   // Function to handle file input change
   const handleFileChange = (event) => {
-    const files = Array.prototype.slice.call(event.target.files);
-    const filesArr = [];
-    files.forEach((file, index) => {
-      if (file && file.type.startsWith("image/")) {
-        const imageURL = URL.createObjectURL(file);
-        // TODO: after uploading the image you can send it to backend and fetch the data to load into the form
-        filesArr.push({
+    const files = Array.from(event.target.files);
+    const validImageFiles = files.filter(file => file && file.type.startsWith("image/"));
+  
+    const uploadPromises = validImageFiles.map((file) => {
+      const imageURL = URL.createObjectURL(file);
+  
+      const formData = new FormData();
+      formData.append('image', file);
+  
+      return fetch(`${base}/parse_register_entry`, {
+        method: 'POST',
+        body: formData
+      })
+        .then(response => response.json())
+        .then(parsedData => ({
           imageURL,
-          data: {
-            bill_number: SAMPLE_DATA.bill_number + index,
-            amount: SAMPLE_DATA.amount + index,
-            supplier: SAMPLE_DATA.supplier,
-            register_date: SAMPLE_DATA.register_date + (index + 1).toString(),
-            party: SAMPLE_DATA.party,
-          },
+          data: parsedData
+        }))
+        .catch(error => {
+          console.error('Error:', error);
+          return {
+            imageURL,
+            data: {}
+          };
         });
-      }
     });
-    setUploadedFiles(filesArr);
+  
+    Promise.all(uploadPromises).then(filesArr => {
+      setUploadedFiles(filesArr);
+      setSelectedImgIndex(0); // Reset to the first image
+    });
   };
 
   useEffect(() => {
@@ -129,17 +141,24 @@ export default function RegisterEntry() {
       const {
         bill_number,
         amount,
-        party,
-        supplier,
+        party_name,
+        supplier_name,
         register_date,
+        date
       } = uploadedFiles[selectedImgIndex].data;
+  
       setValue("amount", amount);
       setValue("bill_number", bill_number);
-      setValue("party", party);
-      setValue("supplier", supplier);
-      setValue("register_date", register_date);
+      setValue("register_date", date || register_date);
+  
+      // Find the supplier and party objects from the names
+      const supplier = suppliers.find(s => s.name === supplier_name);
+      const party = parties.find(p => p.name === party_name);
+  
+      setValue("supplier", supplier || null);
+      setValue("party", party || null);
     }
-  }, [uploadedFiles, selectedImgIndex]);
+  }, [uploadedFiles, selectedImgIndex, suppliers, parties]);
 
   const OnSubmit = (data) => {
     setError(validate);
