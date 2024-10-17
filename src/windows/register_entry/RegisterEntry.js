@@ -97,13 +97,24 @@ export default function RegisterEntry() {
         method: 'POST',
         body: formData
       })
-        .then(response => response.json())
+        .then(response => {
+          if (!response.ok) {
+            // If response is not OK, parse the error message
+            return response.json().then(errorData => {
+              throw errorData;
+            });
+          }
+          return response.json();
+        })
         .then(parsedData => ({
           imageURL,
           data: parsedData
         }))
         .catch(error => {
           console.error('Error:', error);
+          // Set the status state with the error message
+          setStatus(error);
+          setNotificationOpen(true);
           return {
             imageURL,
             data: {}
