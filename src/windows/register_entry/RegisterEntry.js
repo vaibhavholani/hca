@@ -182,7 +182,7 @@ export default function RegisterEntry() {
     <>
       <Home />
       <div className="register-entry-wrapper">
-        <div className="form-wrapper">
+        <div className={`form-wrapper ${!selectSupplier ? 'not-select' : ''}`}>
           <div>
             <div className="box-title" style={{margin: '0 auto', width: 'fit-content'}}>
               {selectSupplier ? (

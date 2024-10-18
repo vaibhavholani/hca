@@ -24,6 +24,9 @@
     width: 100%;
     /*border-right: 1px solid #8709e3;*/
 }
+.form-wrapper.not-select{
+    align-items: center;
+}
 .box-title{
     padding: 60px;
     background: white;
