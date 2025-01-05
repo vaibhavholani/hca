@@ -5,7 +5,7 @@ export const update_bill_color = (bills) => {
     var colour_bills = [];
 
     bills.forEach((item) => {
-        const {amount, partial_amount, gr_amount, deduction, status} = item;
+        const {amount, partial_amount, gr_amount, deduction, status, register_date} = item;
         const pending = {pending: amount - partial_amount - gr_amount - deduction} 
         var color;
         if (status === "N") {
@@ -17,7 +17,7 @@ export const update_bill_color = (bills) => {
         else {
             color = {"color": "blue"}
         }
-        const obj = {...item, ...color, ...pending}
+        const obj = {...item, ...color, ...pending, register_date}
         colour_bills.push(obj);
     })
     return colour_bills;

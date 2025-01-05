@@ -425,9 +425,9 @@ export default function MemoEntry() {
                             disabled={mode.name==="Part" ? true : false}
                             getOptionLabel = {(option) => option.bill_number.toString()}
                             renderOption={(option, props) => {
-                                const {bill_number, color, pending} = option
+                                const {bill_number, color, pending, register_date} = option
                                 return (
-                                <span {...props} style={{color: color }}> #{bill_number} | Pending Amount: ₹{pending}</span>
+                                <span {...props} style={{color: color }}> #{bill_number} | {register_date} | ₹{pending}</span>
                                 )
                             }}
 
