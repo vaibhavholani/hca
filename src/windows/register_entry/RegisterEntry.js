@@ -32,16 +32,17 @@ export const getDate = () => {
 };
 
 export default function RegisterEntry() {
-
   const { type, supplier: supplierFromParams } = useParams();
-  
+
   // Determine `selectSupplier` based on `type`
-  const selectSupplier = type === "select"; 
+  const selectSupplier = type === "select";
   const supplierParsed = selectSupplier ? null : JSON.parse(supplierFromParams);
 
   const { register, handleSubmit, reset } = useForm();
   const [suppliers, setSuppliers] = useState([]);
-  const [selectedSupplier, setSelectedSupplier] = useState(selectSupplier ? null : supplierParsed);
+  const [selectedSupplier, setSelectedSupplier] = useState(
+    selectSupplier ? null : supplierParsed
+  );
   const [parties, setParties] = useState([]);
   const [party, setParty] = useState([]);
   const [error, setError] = useState(validate);
@@ -51,7 +52,25 @@ export default function RegisterEntry() {
   });
   const [notificationOpen, setNotificationOpen] = useState(false);
   const [initialRender, setInitialRender] = useState(true);
+  const history = useHistory();
   const date = getDate();
+
+  // Handle escape key to go back
+  useEffect(() => {
+    const handleEscape = (e) => {
+      if (e.key === 'Escape') {
+        if (type === 'select') {
+          // When in select mode (selecting party), go back home
+          history.push('/');
+        } else {
+          // When in deselect mode (after supplier selected), go back to supplier selection
+          history.push('/selector/Supplier/register_entry/none');
+        }
+      }
+    };
+    window.addEventListener('keydown', handleEscape);
+    return () => window.removeEventListener('keydown', handleEscape);
+  }, [history, type]);
 
   useEffect(() => {
     setKeyBinds();
@@ -115,7 +134,9 @@ export default function RegisterEntry() {
           {selectSupplier ? (
             <h3 style={{ display: "inline" }}>Register Entry</h3>
           ) : (
-            <h3 style={{ display: "inline" }}>Supplier Name: {selectedSupplier?.name}</h3>
+            <h3 style={{ display: "inline" }}>
+              Supplier Name: {selectedSupplier?.name}
+            </h3>
           )}
         </div>
         <form onSubmit={handleSubmit(OnSubmit)}>
@@ -140,30 +161,29 @@ export default function RegisterEntry() {
                 props={{ inputProps: { ...register("register_date") } }}
               />
             </div>
-            {selectSupplier && 
-              (
-                <Autocomplete
-                  options={suppliers}
-                  getOptionLabel={(option) => option.name}
-                  onChange={(event, value) => setSelectedSupplier(value)}
-                  autoHighlight
-                  onKeyPress={(e) => {
-                    if (e.key === "Enter") {
-                      document.getElementById("parties").focus();
-                      e.preventDefault();
-                      // write your functionality here
-                    }
-                  }}
-                  renderInput={(params) => (
-                    <TextInput
-                      label="Select Supplier"
-                      props={params}
-                      errorState={error.supplier?.error}
-                      errorText={error.supplier?.message}
-                    />
-                  )}
-                />
-              )}
+            {selectSupplier && (
+              <Autocomplete
+                options={suppliers}
+                getOptionLabel={(option) => option.name}
+                onChange={(event, value) => setSelectedSupplier(value)}
+                autoHighlight
+                onKeyPress={(e) => {
+                  if (e.key === "Enter") {
+                    document.getElementById("parties").focus();
+                    e.preventDefault();
+                    // write your functionality here
+                  }
+                }}
+                renderInput={(params) => (
+                  <TextInput
+                    label="Select Supplier"
+                    props={params}
+                    errorState={error.supplier?.error}
+                    errorText={error.supplier?.message}
+                  />
+                )}
+              />
+            )}
             <div>
               <Autocomplete
                 options={parties}
