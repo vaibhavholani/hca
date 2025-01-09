@@ -44,7 +44,24 @@ export default function Home() {
 
     useEffect(()=> {
         setKeybinds();
-        (document.getElementsByClassName('entry-tag')[0]).focus()
+        (document.getElementsByClassName('entry-tag')[0]).focus();
+
+        // Add F2 key handler
+        const handleF2 = (e) => {
+            if (e.key === 'F2') {
+                e.preventDefault();
+                const entryTab = document.getElementsByClassName('entry-tag')[0];
+                if (entryTab) {
+                    entryTab.focus();
+                }
+            }
+        };
+        window.addEventListener('keydown', handleF2);
+        
+        // Cleanup
+        return () => {
+            window.removeEventListener('keydown', handleF2);
+        };
     }, [])
    
     return (
