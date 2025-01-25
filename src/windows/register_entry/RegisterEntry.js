@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from "react";
 import { useForm, Controller } from "react-hook-form";
 import { makeStyles } from "@material-ui/core/styles";
 import Autocomplete from "@material-ui/lab/Autocomplete";
-import { useParams } from "react-router-dom";
+import { useParams, useHistory } from "react-router-dom";
 import Home from "../home/Home.js";
 import { validate } from "./validation.js";
 import TextInput from "../Custom/TextInput.js";
@@ -53,9 +53,8 @@ const SAMPLE_PARTIES = [
 
 export default function RegisterEntry() {
   const uploadInputRef = useRef();
-
   const { type, supplier: supplierFromParams } = useParams();
-
+  
   // Determine `selectSupplier` based on `type`
   const selectSupplier = type === "select";
   const supplierParsed = selectSupplier ? null : JSON.parse(supplierFromParams);
@@ -69,7 +68,9 @@ export default function RegisterEntry() {
     reset,
     control,
   } = useForm();
-  const [suppliers, setSuppliers] = useState(SAMPLE_SUPPLIER);
+  const [suppliers, setSuppliers] = useState(
+    SAMPLE_SUPPLIER
+  );
   const [parties, setParties] = useState(SAMPLE_PARTIES);
   const [error, setError] = useState(validate);
   const [status, setStatus] = useState({
@@ -78,6 +79,7 @@ export default function RegisterEntry() {
   });
   const [notificationOpen, setNotificationOpen] = useState(false);
   const [initialRender, setInitialRender] = useState(true);
+  const history = useHistory();
   const date = getDate();
   const [uploadedFiles, setUploadedFiles] = useState([]);
   const [selectedImgIndex, setSelectedImgIndex] = useState(0);
@@ -127,6 +129,23 @@ export default function RegisterEntry() {
       setSelectedImgIndex(0); // Reset to the first image
     });
   };
+
+  // Handle escape key to go back
+  useEffect(() => {
+    const handleEscape = (e) => {
+      if (e.key === 'Escape') {
+        if (type === 'select') {
+          // When in select mode (selecting party), go back home
+          history.push('/');
+        } else {
+          // When in deselect mode (after supplier selected), go back to supplier selection
+          history.push('/selector/Supplier/register_entry/none');
+        }
+      }
+    };
+    window.addEventListener('keydown', handleEscape);
+    return () => window.removeEventListener('keydown', handleEscape);
+  }, [history, type]);
 
   useEffect(() => {
     setKeyBinds();
