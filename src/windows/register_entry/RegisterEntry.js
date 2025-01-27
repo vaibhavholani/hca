@@ -83,6 +83,10 @@ export default function RegisterEntry() {
   const date = getDate();
   const [uploadedFiles, setUploadedFiles] = useState([]);
   const [selectedImgIndex, setSelectedImgIndex] = useState(0);
+  const [originalPredictions, setOriginalPredictions] = useState({
+    supplier_name: { raw: null, matched: null },
+    party_name: { raw: null, matched: null }
+  });
 
   // Function to handle file input change
   const handleFileChange = (event) => {
@@ -172,7 +176,9 @@ export default function RegisterEntry() {
         bill_number,
         amount,
         party_name,
+        party_name_matched,
         supplier_name,
+        supplier_name_matched,
         register_date,
         date
       } = uploadedFiles[selectedImgIndex].data;
@@ -181,12 +187,24 @@ export default function RegisterEntry() {
       setValue("bill_number", bill_number);
       setValue("register_date", date || register_date);
   
-      // Find the supplier and party objects from the names
-      const supplier = suppliers.find(s => s.name === supplier_name);
-      const party = parties.find(p => p.name === party_name);
+      // Find the supplier and party objects from the matched names
+      const supplier = suppliers.find(s => s.name === supplier_name_matched);
+      const party = parties.find(p => p.name === party_name_matched);
   
       setValue("supplier", supplier || null);
       setValue("party", party || null);
+
+      // Store both raw and matched predictions
+      setOriginalPredictions({
+        supplier_name: {
+          raw: supplier_name,
+          matched: supplier_name_matched
+        },
+        party_name: {
+          raw: party_name,
+          matched: party_name_matched
+        }
+      });
     }
   }, [uploadedFiles, selectedImgIndex, suppliers, parties]);
 
@@ -212,6 +230,33 @@ export default function RegisterEntry() {
         party_id: data.party.id,
         register_date: data.register_date,
       };
+
+      // Check if names were corrected by user
+      if (originalPredictions.supplier_name.raw && 
+          data.supplier?.name !== originalPredictions.supplier_name.matched) {
+        fetch(`${base}/update_name_mapping`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            original_name: originalPredictions.supplier_name.raw,
+            corrected_name: data.supplier.name,
+            entity_type: "supplier"
+          }),
+        }).catch(err => console.log("Error updating supplier mapping:", err));
+      }
+
+      if (originalPredictions.party_name.raw && 
+          data.party?.name !== originalPredictions.party_name.matched) {
+        fetch(`${base}/update_name_mapping`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            original_name: originalPredictions.party_name.raw,
+            corrected_name: data.party.name,
+            entity_type: "party"
+          }),
+        }).catch(err => console.log("Error updating party mapping:", err));
+      }
 
       fetch(`${base}/add/register_entry`, {
         method: "POST",
