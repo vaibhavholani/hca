@@ -830,12 +830,16 @@ export default function MemoEntry() {
                     id="gr_amount"
                     value={grAmount}
                     onChange={(e) => setGrAmount(Number(e.target.value) || 0)}
-                    InputProps={{
-                      inputProps: {
-                        min: 0,
-                        max: maxGR,
-                      },
-                    }}
+                    InputProps = {{inputProps: {...register("gr_amount", {
+                      min: {
+                          value: 0,
+                          message: `GR amount cannot be negative`
+                      }, 
+                      max: {
+                          value: maxGR,
+                          message: `GR amount cannot be greater than total amount: ${maxGR}`
+                      }, 
+                      })}}}
                   />
 
                   <TextInput
@@ -843,12 +847,17 @@ export default function MemoEntry() {
                     type="number"
                     value={deduction}
                     onChange={(e) => setDeduction(Number(e.target.value) || 0)}
-                    InputProps={{
-                      inputProps: {
-                        min: 0,
-                        max: setAmount(selectedBills, grAmount, partAmount),
+                    InputProps = {{inputProps: {...register("deduction", {
+                      min: {
+                          value: 0,
+                          message: "Please enter a positive number"
                       },
-                    }}
+                      max:{
+                          value: setAmount(selectedBills, grAmount, partAmount),
+                          message: "Invalid Max Value"
+                      }, 
+                      valueAsNumber: true
+                  })}}}
                   />
                 </div>
               </fieldset>
